@@ -11,6 +11,7 @@ const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
+  const [emailvalid, setemailvalid] = useState(false);
   const navigation = useNavigation();
 
   return (
@@ -49,7 +50,9 @@ const LoginScreen = () => {
        <UserTextInput 
       placeholder="Email" 
       isPass={false} 
-      setStateValue={setemail}  />
+      setStateValue={setemail}
+      setemailvalid={setemailvalid}  />
+      
       <View style={{ marginTop: 10 }} />
       <UserTextInput 
       placeholder="Password" 
@@ -57,7 +60,7 @@ const LoginScreen = () => {
       setStateValue={setpassword}  />
       <View style={{ marginTop: 10 }} />
 
-      <TouchableOpacity style={{ width: '100%', paddingHorizontal: 4, paddingVertical: 2, borderRadius: 10, backgroundColor: '2F3B6A', marginVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+      <TouchableOpacity style={{ width: '100%', paddingHorizontal: 4, paddingVertical: 5, borderRadius: 10, backgroundColor: '#2F3B6A', marginVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ paddingVertical: 5, color: 'white', fontSize: 20, fontWeight: 'bold' }}>
           Sign In
         </Text>

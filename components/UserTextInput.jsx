@@ -5,7 +5,8 @@ import { Entypo, MaterialIcons } from '@expo/vector-icons';
 const UserTextInput = ({ 
   placeholder, 
   isPass, 
-  setStateValue }) => {
+  setStateValue,
+  setemailvalid }) => {
 
     const [value, setvalue] = useState('');
 
@@ -13,15 +14,25 @@ const UserTextInput = ({
 
     const [icon, seticon] = useState(null);
 
+    const [isemailvalid, setisemailvalid] = useState(false);
+
     const textchange =(text) => {
       setvalue(text)
       setStateValue(value)
+
+      if (placeholder === "Email"){
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const status = emailRegex.test(value);
+        setisemailvalid(status)
+        setemailvalid(status)
+
+      }
     }
 
     useLayoutEffect(() => {
       switch(placeholder){
-        case 'Full Name' :
-          return seticon('person')
+        case 'Confirm Password' :
+          return seticon('lock')
         
         case 'Email' :
           return seticon('email')
@@ -40,7 +51,7 @@ const UserTextInput = ({
       alignItems: 'center',
       justifyContent: 'space-between',
       marginVertical: 2,
-      borderColor: '#CCCCCC', // Use a specific color or replace with a variable representing your desired color
+      borderColor: (!isemailvalid && placeholder == "Email" && value.length > 0) ? 'red' : '#000080' , // Use a specific color or replace with a variable representing your desired color
     }}>
       <MaterialIcons name={icon} size={24} color={'#000080'} style={{ marginRight: 10 }} />
       <TextInput 
