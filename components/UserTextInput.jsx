@@ -31,6 +31,9 @@ const UserTextInput = ({
 
     useLayoutEffect(() => {
       switch(placeholder){
+        case 'Username':
+          return seticon('person')
+          
         case 'Confirm Password' :
           return seticon('lock')
         

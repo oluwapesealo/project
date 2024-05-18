@@ -5,15 +5,29 @@ import { Leaf } from '../assets';
 import { Leave } from '../assets';
 import { UserTextInput } from '../components';
 import { useNavigation } from '@react-navigation/native';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth } from '../config/firbase.config';
 
 const SignUpScreen = () => {
 
   const screenWidth = Math.round(Dimensions.get("window").width);
+  const [username, setusername] = useState('');
   const [email, setemail] = useState('');
   const [password, setpassword] = useState('');
   const [confirmpassword, setconfirmpassword] = useState('');
   const [emailvalid, setemailvalid] = useState(false);
   const navigation = useNavigation();
+
+  const signup = async() => {
+    if(emailvalid && email !==""){
+      await createUserWithEmailAndPassword(firebaseAuth, username, email, password). then(userCred => {
+        const data ={
+          _id: userCred?.user.uid,
+
+        }
+      })
+    }
+  }
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
       <Image 
@@ -47,6 +61,12 @@ const SignUpScreen = () => {
       justifyContent: 'center' }}>
         <View style={{ marginTop: 100 }} />
 
+        <UserTextInput 
+      placeholder="Username" 
+      isPass={false} 
+      setStateValue={setusername} />
+      <View style={{ marginTop: 10 }} />
+
        <UserTextInput 
       placeholder="Email" 
       isPass={false} 
@@ -62,11 +82,11 @@ const SignUpScreen = () => {
 
       <UserTextInput 
       placeholder="Confirm Password" 
-      isPass={false} 
+      isPass={true} 
       setStateValue={setconfirmpassword}  />
       <View style={{ marginTop: 10 }} />
 
-      <TouchableOpacity style={{ width: '100%', 
+      <TouchableOpacity onPress={signup} style={{ width: '100%', 
       marginTop: 10, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10, backgroundColor: '#2F3B6A', marginVertical: -20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ paddingVertical: 5, color: 'white', fontSize: 20, fontWeight: 'bold' }}>
           Sign Up
