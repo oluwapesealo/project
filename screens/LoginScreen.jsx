@@ -7,6 +7,9 @@ import { UserTextInput } from '../components';
 import { useNavigation } from '@react-navigation/native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { firebaseAuth, firestoreDB } from '../config/firbase.config';
+import { doc, getDoc } from 'firebase/firestore';
+import { useDispatch } from 'react-redux';
+import { SET_USER } from '../context/actions/userActions';
 
 const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -14,25 +17,47 @@ const LoginScreen = () => {
   const [password, setpassword] = useState('');
   const [emailvalid, setemailvalid] = useState(false);
   const navigation = useNavigation();
+  const [alert, setalert] = useState(false);
+  const [alertmessage, setalertmessage] = useState("");
+  const dispatch = useDispatch();
+
   const login = async() =>{
     if(emailvalid && email !==""){
       await signInWithEmailAndPassword(firebaseAuth, email, password).then(
         userCred => {
         if(userCred){
           console.log("User Id:" , userCred?.user.uid);
-        // const data = {
-        //   _id: userCred?.user.uid,
-        //   username : username,
-        //   providerData: userCred.user.providerData[0]
-        // };
-      //   // setDoc(doc(firestoreDB, "users", userCred?.user.uid), data).then(() => {
-      //   //   navigation.navigate("LoginScreen");
-          
-      //   // }
-      // );
+          getDoc(doc(firestoreDB, "users", userCred?.user.uid )).then((docSnap) => {
+            if(docSnap.exists()){
+              console.log("User Data :", docSnap.data());
+              dispatch(SET_USER(docSnap.data()))
+            }
+            // else{
+            //   setalert(true);
+            //   setalertmessage("User not found");
+            //   setInterval(() => {
+            //     setalert(false);
+            //   },
+            //   5000
+            // );
+            // }
+          }
+        );
     }
       }
+    ).catch((err) => {
+      console.log("Error : ", err.message)
+      if(err.message.includes("invalid-credential")){
+        setalert(true);
+        setalertmessage("Invalid Email or Password entered");
+      }
+      setInterval(() => {
+        setalert(false);
+      },
+      5000
     );
+    }
+  )
     }
   };
 
@@ -68,7 +93,15 @@ const LoginScreen = () => {
       flex: 3, 
       alignItems: 'center', 
       justifyContent: 'center' }}>
-        <View style={{ marginTop: 10 }} />
+        <View style={{ marginTop: 50 }} />
+
+      {alert && (
+        
+      <Text style = {{
+        color:  '#FF0000',
+      }}>{alertmessage}</Text>
+      )}
+
        <UserTextInput 
       placeholder="Email" 
       isPass={false} 

@@ -27,16 +27,25 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {HomeScreen} from "./screens"
 import {LoginScreen} from "./screens"
 import {SignUpScreen} from "./screens"
+import {SplashScreen} from "./screens"
+import {Provider} from "react-redux"
+import Store from "./context/store"
+
 //import 'react-native-reanimated'
 const Stack = createNativeStackNavigator();
 
 const App = () => {
   return (
     <NavigationContainer>
+      <Provider store={Store}> 
       <Stack.Navigator screenOptions = {{headerShown : false}}>
+        <Stack.Screen name="SplashScreen" component={SplashScreen} />
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
       </Stack.Navigator>
+      </Provider>
+      
     </NavigationContainer>
   )
 }
