@@ -6,7 +6,8 @@ import { Leave } from '../assets';
 import { UserTextInput } from '../components';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { firebaseAuth } from '../config/firbase.config';
+import { firebaseAuth, firestoreDB } from '../config/firbase.config';
+import { setDoc, doc } from 'firebase/firestore';
 
 const SignUpScreen = () => {
 
@@ -18,16 +19,24 @@ const SignUpScreen = () => {
   const [emailvalid, setemailvalid] = useState(false);
   const navigation = useNavigation();
 
-  const signup = async() => {
+  const signup = async () => {
     if(emailvalid && email !==""){
-      await createUserWithEmailAndPassword(firebaseAuth, username, email, password). then(userCred => {
-        const data ={
+      await createUserWithEmailAndPassword(firebaseAuth, email, password).then((userCred) => {
+        const data = {
           _id: userCred?.user.uid,
-
+          username: username,
+          providerData: userCred.user.providerData[0],
+          
+        };
+        setDoc(doc(firestoreDB, "users", userCred?.user.uid), data).then(() => {
+          navigation.navigate("LoginScreen");
         }
-      })
+      );
+      }
+    );
     }
-  }
+  };
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
       <Image 

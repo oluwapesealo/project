@@ -5,7 +5,8 @@ import { Leaf } from '../assets';
 import { Leave } from '../assets';
 import { UserTextInput } from '../components';
 import { useNavigation } from '@react-navigation/native';
-
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { firebaseAuth, firestoreDB } from '../config/firbase.config';
 
 const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -13,6 +14,27 @@ const LoginScreen = () => {
   const [password, setpassword] = useState('');
   const [emailvalid, setemailvalid] = useState(false);
   const navigation = useNavigation();
+  const login = async() =>{
+    if(emailvalid && email !==""){
+      await signInWithEmailAndPassword(firebaseAuth, email, password).then(
+        userCred => {
+        if(userCred){
+          console.log("User Id:" , userCred?.user.uid);
+        // const data = {
+        //   _id: userCred?.user.uid,
+        //   username : username,
+        //   providerData: userCred.user.providerData[0]
+        // };
+      //   // setDoc(doc(firestoreDB, "users", userCred?.user.uid), data).then(() => {
+      //   //   navigation.navigate("LoginScreen");
+          
+      //   // }
+      // );
+    }
+      }
+    );
+    }
+  };
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
@@ -60,7 +82,7 @@ const LoginScreen = () => {
       setStateValue={setpassword}  />
       <View style={{ marginTop: 10 }} />
 
-      <TouchableOpacity style={{ width: '100%', paddingHorizontal: 4, paddingVertical: 5, borderRadius: 10, backgroundColor: '#2F3B6A', marginVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+      <TouchableOpacity onPress={login} style={{ width: '100%', paddingHorizontal: 4, paddingVertical: 5, borderRadius: 10, backgroundColor: '#2F3B6A', marginVertical: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
         <Text style={{ paddingVertical: 5, color: 'white', fontSize: 20, fontWeight: 'bold' }}>
           Sign In
         </Text>
