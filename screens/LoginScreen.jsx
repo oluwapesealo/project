@@ -31,6 +31,7 @@ const LoginScreen = () => {
             if(docSnap.exists()){
               console.log("User Data :", docSnap.data());
               dispatch(SET_USER(docSnap.data()))
+              navigation.navigate("HomeScreen");
             }
             // else{
             //   setalert(true);

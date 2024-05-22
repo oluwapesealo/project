@@ -52,8 +52,8 @@ const SignUpScreen = () => {
         marginTop: -44, 
         alignItems: 'center', 
         justifyContent: 'flex-start', 
-        paddingTop: 30, paddingHorizontal: 20, 
-        paddingBottom: 20 }}>
+        paddingTop: 10, paddingHorizontal: 20, 
+        paddingBottom: 0 }}>
           
 
         <Image source={Logo} 
@@ -62,13 +62,14 @@ const SignUpScreen = () => {
           height: 100 }} 
           resizeMode="contain" />
         <Text style ={{ paddingBottom: 90, color: '#2F3B6A', fontSize: 20, fontWeight: 'bold'}}> Welcome To PAUBOARD! </Text>
+        
     <View style={{ 
       paddingBottom: 550,
       width: '90%',
       flex: 3, 
       alignItems: 'center', 
       justifyContent: 'center' }}>
-        <View style={{ marginTop: 100 }} />
+        <View style={{ marginTop: 150 }} />
 
         <UserTextInput 
       placeholder="Username" 
