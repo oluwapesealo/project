@@ -24,7 +24,7 @@ import { Text, View } from 'react-native';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import {HomeScreen} from "./screens"
+import {AddToChatScreen, HomeScreen} from "./screens"
 import {LoginScreen} from "./screens"
 import {SignUpScreen} from "./screens"
 import {SplashScreen} from "./screens"
@@ -43,6 +43,7 @@ const App = () => {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
         <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
       </Stack.Navigator>
       </Provider>
       
