@@ -1,16 +1,95 @@
-import { View , Text} from 'react-native'
-import React from 'react'
+import { View, Text, TouchableOpacity, TextInput } from 'react-native';
+import React, { useState } from 'react';
+import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const AddToChatScreen = () => {
+    const navigation = useNavigation();
+    const user = useSelector(state => state.user.user);
+    const [addchat, setaddchat] = useState('');
     return (
-        <View style ={{flex:1}}> 
-            <Text>
-                HI
-            </Text>
+        <View style={{ flex: 1 }}>
+            <View style={{
+                width: '100%',
+                backgroundColor: '#2F3B6A', // Replace with your primary color
+                paddingHorizontal: 16,
+                paddingVertical: 24,
+                flex: 0.25,
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <View style={{
+                    width: '100%',
+                    paddingHorizontal: 16,
+                    paddingVertical: 48,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <MaterialIcons name="chevron-left" size={32} color={'white'} />
+                    </TouchableOpacity>
+                    <View style={{
+                        marginRight: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderColor: 'white'
+                    }}>
+                        <Ionicons name="person" size={24} color="#555" />
+                    </View>
+                </View>
+            </View>
+            <View style={{
+                width: '100%',
+                backgroundColor: 'white',
+                paddingHorizontal: 16,
+                paddingVertical: 24,
+                borderRadius: 24,
+                flex: 1,
+                borderTopLeftRadius: 50,
+                borderTopRightRadius: 50,
+                marginTop: -40,
+            }}>
+                <View style={{
+                    width: '100%',
+                    paddingHorizontal: 16,
+                    paddingVertical: 16,
+                }}>
+                    <View style={{
+                        width: '100%',
+                        paddingHorizontal: 16,
+                        paddingVertical: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: '#E5E7EB',
+                    }}>
+                        <Ionicons name='chatbubbles' size={24} color={'#777'} />
+                        <TextInput
+                            style={{
+                                flex: 1,
+                                fontSize: 16,
+                                color: '#333',
+                                marginLeft: 8, // Added margin to separate the icon from text input
+                                height: 48,
+                            }}
+                            placeholder='Create a chat'
+                            placeholderTextColor={'#777'}
+                            value={addchat}
+                            onChangeText={(text) => setaddchat(text)}
+                        />
+                        <TouchableOpacity>
+                            <FontAwesome name='send' size={24} color={'#777'} />
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
         </View>
-
-
-    )
+    );
 }
 
-export default AddToChatScreen
+export default AddToChatScreen;
