@@ -3,11 +3,30 @@ import React, { useState } from 'react';
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-
+import { firestoreDB } from '../config/firbase.config';
+import HomeScreen from './HomeScreen';
+import { doc, setDoc } from 'firebase/firestore';
 const AddToChatScreen = () => {
     const navigation = useNavigation();
     const user = useSelector(state => state.user.user);
     const [addchat, setaddchat] = useState('');
+    const CreateNewChat = async () =>{
+        let id = `${Date.now()}`;
+
+        const _doc ={
+            _id : id,
+            user : user,
+            chatName : addchat
+        };
+        if (addchat !==""){
+            setDoc(doc(firestoreDB, "chats", id), _doc).then(() =>{
+                setaddchat("");
+                navigation.replace("HomeScreen");
+            }).catch((err)=>{
+                alert("Error : ", err);
+            });
+        }
+    };
     return (
         <View style={{ flex: 1 }}>
             <View style={{
@@ -82,7 +101,7 @@ const AddToChatScreen = () => {
                             value={addchat}
                             onChangeText={(text) => setaddchat(text)}
                         />
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={CreateNewChat}> 
                             <FontAwesome name='send' size={24} color={'#777'} />
                         </TouchableOpacity>
                     </View>

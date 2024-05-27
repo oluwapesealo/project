@@ -1,15 +1,32 @@
 import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Login, Logo } from '../assets';
 import { FontAwesome5, FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { firestoreDB } from '../config/firbase.config';
 
 const HomeScreen = () => {
   const user = useSelector(state => state.user.user);
   const navigation = useNavigation();
+  const [isLoading, setisLoading] = useState(true);
+  const [chats, setchats] = useState(null);
+
+  useLayoutEffect(() => {
+    const chatquery = query(collection(firestoreDB, "chats"), orderBy("_id", "desc"));
+
+    const unsubscribe = onSnapshot(chatquery, (querySnapShot) =>{
+      const chatrooms = querySnapShot.docs.map(doc => doc.data())
+      setchats(chatrooms)
+      setisLoading(false)
+    })
+
+    return unsubscribe
+
+  }, [])
   console.log("Logged User: ", user);
-  const MessageCard = () => {
+  const MessageCard = ({room}) => {
     return (
       <TouchableOpacity style={{
         width: '100%',
@@ -42,7 +59,7 @@ const HomeScreen = () => {
             fontWeight: '600', 
             textTransform: 'capitalize' 
           }}>
-            Message Title
+            {room.chatName}
           </Text>
           <Text style={{ 
             color: 'blue', 
@@ -59,7 +76,7 @@ const HomeScreen = () => {
       </TouchableOpacity>
     );
   };
-  const [isLoading, setisLoading] = useState(false);
+  
 
   return (
     <View style={{
@@ -133,14 +150,8 @@ const HomeScreen = () => {
             }}>
                <ActivityIndicator size="large" color="#2F3B6A" /></View></>) : 
                ( <> 
-               <MessageCard />
-               <MessageCard />
-               <MessageCard />
-               <MessageCard />
-               <MessageCard />
-               <MessageCard />
-               <MessageCard />
-               <MessageCard /> 
+                {chats && chats?.length > 0 ? (<>
+                {chats?.map(room => (<MessageCard key={room._id} room ={room} />))}</>) : (<></>) }
                </>
               )}
           </View>
