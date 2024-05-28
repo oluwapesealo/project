@@ -26,9 +26,12 @@ const HomeScreen = () => {
 
   }, [])
   console.log("Logged User: ", user);
+
   const MessageCard = ({room}) => {
+    //const navigation = useNavigation();
     return (
-      <TouchableOpacity style={{
+      <TouchableOpacity 
+      onPress={() => navigation.navigate("ChatScreen", {room : room})} style={{
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
