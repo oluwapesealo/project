@@ -1,11 +1,11 @@
 import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator } from 'react-native';
 import React, { useLayoutEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Login, Logo } from '../assets';
-import { FontAwesome5, FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { firestoreDB } from '../config/firbase.config';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const HomeScreen = () => {
   const user = useSelector(state => state.user.user);
@@ -24,18 +24,17 @@ const HomeScreen = () => {
 
     return unsubscribe
 
-  }, [])
+  }, []);
   console.log("Logged User: ", user);
 
   const MessageCard = ({room}) => {
-    //const navigation = useNavigation();
     return (
       <TouchableOpacity 
       onPress={() => navigation.navigate("ChatScreen", {room : room})} style={{
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'flex-start', // changed to flex-start
+        justifyContent: 'flex-start',
         paddingTop: 16
       }}>
         <View style={{ 
@@ -45,10 +44,10 @@ const HomeScreen = () => {
           alignItems: 'center',
           justifyContent: 'center',
           borderWidth: 2, 
-          borderColor: 'blue', 
+          borderColor: '#2F3B6A', 
           padding: 4
         }}>
-          <Ionicons name="person" size={24} color="#555" />
+          <Ionicons name="person" size={24} color="#FFFFFF" />
         </View>
         <View style={{ 
           flex: 1, 
@@ -57,7 +56,7 @@ const HomeScreen = () => {
           marginLeft: 16 
         }}>
           <Text style={{ 
-            color: '#333', 
+            color: '#FFFFFF', 
             fontSize: 16, 
             fontWeight: '600', 
             textTransform: 'capitalize' 
@@ -65,14 +64,14 @@ const HomeScreen = () => {
             {room.chatName}
           </Text>
           <Text style={{ 
-            color: 'blue', 
+            color: '#FFFFFF', 
             fontSize: 14 
           }}>
             This is the message that appears from other people
           </Text>
         </View>
         <Text style={{ 
-            color: 'blue', 
+            color: '#FFFFFF', 
             fontSize: 14,
             fontWeight: '600'
           }}>20 min</Text>
@@ -80,85 +79,96 @@ const HomeScreen = () => {
     );
   };
   
-
   return (
     <View style={{
       flex: 1,
     }}>
       <SafeAreaView style={{
-    flex: 1,
-  }}>
+        flex: 1,
+      }}>
         <View style={{
           width: '100%',
+          height: 50, // Adjust height as needed
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingHorizontal: 16,
           paddingVertical: 8,
-          
+          position: 'relative'
         }}>
-          <Image source={Logo} style={ {
-            width: 60,
-            height: 60,
-          }} resizeMode="contain" />
+          <TouchableOpacity>
+            <Entypo name='menu' size={28} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
             <Text style={{
               fontSize: 24,
               fontWeight: 'bold',
               textAlign: 'center',
               color: '#2F3B6A',
-              flex: 1, 
             }}>PAUBOARD</Text>
-          <TouchableOpacity style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            borderWidth: 1,
-            borderColor: 'blue',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginLeft: 16,
-          }}>
-            <Image source={Login} style={{
-              width: 24,
-              height: 24,
-            }} resizeMode="contain" />
-          </TouchableOpacity>
+          </View>
+          
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name='person-outline' size={16} />
+            <Text style={{
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 'bold',
+              color: '#2F3B6A',
+            }}>
+              {user?.name ?? 'Alo Oluwapese'}
+            </Text>
+          </View>
         </View>
-        <ScrollView contentContainerStyle={{
-          width: '100%',
-          paddingHorizontal: 16,
-          paddingTop: 16,
-        }}>
-          <View>
-          <View style ={{
+        <LinearGradient
+          colors={['#2F3B6A', '#bdbcbc']}
+          style={{
+            flex: 1,
+          }}
+        >
+          <ScrollView contentContainerStyle={{
             width: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            }}>
-              <Text style={{
-                color: '#2F3B6A', 
-                fontSize: 20, 
-                fontWeight: '800', 
-                paddingBottom: 8}}>Messages</Text>
-                <TouchableOpacity onPress={() => navigation.navigate("AddToChatScreen") }>
-                  <Ionicons name='chatbox' size ={28} color ='#555'/>
+            paddingHorizontal: 16,
+            paddingTop: 16,
+          }}>
+            <View>
+              <View style={{
+                width: '100%',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{
+                  color: '#FFFFFF', 
+                  fontSize: 20, 
+                  fontWeight: '800', 
+                  paddingBottom: 8
+                }}>Messages</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("AddToChatScreen")}>
+                  <Ionicons name='chatbox' size={28} color='#555' />
                 </TouchableOpacity>
-          </View>
-          {isLoading ? (<><View style ={{
-            width: '100%',
-            flex:1,
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            }}>
-               <ActivityIndicator size="large" color="#2F3B6A" /></View></>) : 
-               ( <> 
-                {chats && chats?.length > 0 ? (<>
-                {chats?.map(room => (<MessageCard key={room._id} room ={room} />))}</>) : (<></>) }
-               </>
+              </View>
+              {isLoading ? (
+                <View style={{
+                  width: '100%',
+                  flex: 1,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                </View>
+              ) : (
+                <>
+                  {chats && chats.length > 0 ? (
+                    chats.map(room => (<MessageCard key={room._id} room={room} />))
+                  ) : (
+                    <Text style={{ color: '#FFFFFF' }}>No messages available</Text>
+                  )}
+                </>
               )}
-          </View>
-        </ScrollView>
+            </View>
+          </ScrollView>
+        </LinearGradient>
       </SafeAreaView>
     </View>
   );
