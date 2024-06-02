@@ -1,18 +1,53 @@
 import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { Entypo, FontAwesome, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp } from "firebase/firestore";
+import { firestoreDB } from "../config/firbase.config";
+import { useSelector } from "react-redux";
 const ChatScreen = ({route}) =>{
     const {room} = route.params;
     const navigation = useNavigation();
     const [isLoading, setisLoading] = useState(false);
     const [message, setmessage] = useState('');
     const textinputref = useRef(null);
+    const [messages, setmessages] = useState([]);
     const handleKeyboardopen = () => {
         if(textinputref.current){
             textinputref.current.focus();
         }
     }
+    const user = useSelector(state => state.user.user);
+
+    const sendMessage = async() => {
+        const timeStamp =serverTimestamp();
+        const id = `${Date.now()}`;
+        const _doc ={
+            _id : id,
+            roomId : room._id,
+            timeStamp : timeStamp,
+            message : message,
+            user : user,
+        };
+        setmessage("");
+        await addDoc(collection(doc(firestoreDB, "chats", room._id), "messages"), _doc).then(
+            () =>{}
+        ).catch((err) => alert(err))
+    };
+
+    useLayoutEffect(() => {
+        const messagequery = query(
+            collection(firestoreDB, "chats", room?._id, "messages"), orderBy("timeStamp", "asc")
+        )
+        const unsubscribe = onSnapshot(messagequery, (querySnap) =>{
+            const updatedmessage = querySnap.docs.map(doc => doc.data())
+            setmessages(updatedmessage)
+            setisLoading(false)
+        })
+        return unsubscribe
+    }, [])
+
+
     return (
         <View style={{ flex: 1 }}>
             <View style={{
@@ -107,10 +142,35 @@ const ChatScreen = ({route}) =>{
                                 justifyContent: 'space-between',
                                 }}>
                                 <ActivityIndicator size="large" color="#2F3B6A" /></View>
-                            </>) : 
-                                (
+                            </>) : (
                                 <>
-                                    { }
+                                    {messages?.map((msg, i) => msg.user.providerData.email === user.providerData.email ? 
+                                    (
+                                        <View style={{ margin: 4 }} key={1}>
+                                        <View style={{
+                                            paddingHorizontal: 16, 
+                                            paddingVertical: 8,    
+                                            borderRadius: 16,
+                                            backgroundColor: '#007bff',
+                                            position: 'relative',  
+                                        }}>
+                                            <Text style={{
+                                                alignSelf: 'flex-end',
+                                                fontSize: 16,      
+                                                fontWeight: '600', 
+                                                color: '#FFFFFF',  
+                                            }}>
+                                                {msg.message}
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    ) 
+                                    :
+                                    (
+                                    <View key={1}>
+
+                                    </View>
+                                    ) )}
                                 </>)}
                         </ScrollView>
                         <View 
@@ -147,7 +207,7 @@ const ChatScreen = ({route}) =>{
                                     <Entypo name='mic' size={24} color = '#43C651'/>
                                 </TouchableOpacity>
                             </View>
-                            <TouchableOpacity style={{paddingLeft: 32}}> 
+                            <TouchableOpacity style={{paddingLeft: 32}} onPress={sendMessage}> 
                             <FontAwesome name='send' size={24} color={'#777'} />    
                         </TouchableOpacity>
                         </View>
