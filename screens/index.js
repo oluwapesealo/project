@@ -10,3 +10,5 @@ export {default as ProfileScreen} from "./ProfileScreen";
 export {default as MessagesScreen} from "./MessagesScreen";
 export {default as CalendarScreen} from "./CalendarScreen";
 export {default as FavouritesScreen} from "./FavouritesScreen";
+export {default as PostScreen} from "./PostScreen";
+

@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider } from "react-redux";
 import Store from "./context/store";
-import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen } from "./screens";
+import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen, PostScreen } from "./screens";
 import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +41,8 @@ const MainTabs = () => (
     <Tab.Screen name="Messages" component={MessagesScreen} />
     <Tab.Screen name="Favourites" component={FavouritesScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
+    <Tab.Screen name="Post" component={PostScreen} />
+
   </Tab.Navigator>
 );
 
