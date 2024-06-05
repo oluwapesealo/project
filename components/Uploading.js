@@ -15,7 +15,7 @@ export function Uploading({ image, progress }) {
                 <Text style={styles.text}>
                     Uploading...
                 </Text>
-                <ProgressBar progress={60} />
+                <ProgressBar progress={progress} />
                 <View style={styles.separator} />
                 <TouchableOpacity>
                     <Text style={styles.cancelButton}>
