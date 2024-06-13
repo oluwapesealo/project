@@ -73,7 +73,7 @@ const AddToChatScreen = () => {
             }}>
                 <View style={{
                     width: '100%',
-                    paddingHorizontal: 16,
+                    paddingHorizontal: 10,
                     paddingVertical: 16,
                 }}>
                     <View style={{
