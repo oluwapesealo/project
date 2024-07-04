@@ -49,7 +49,7 @@ const MessagesScreen = () => {
           borderColor: '#2F3B6A', 
           padding: 4
         }}>
-          <Ionicons name="person" size={24} color="#FFFFFF" />
+          <Ionicons name="person" size={26} color="#FFFFFF" />
         </View>
         <View style={{ 
           flex: 1, 
@@ -111,7 +111,9 @@ const MessagesScreen = () => {
           </View>
           
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name='person-outline' size={16} />
+            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+            <Ionicons name='person-outline' size={18} />
+            </TouchableOpacity>
             <Text style={{
               marginTop: 4,
               fontSize: 13,
