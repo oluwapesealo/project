@@ -7,13 +7,18 @@ import { addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { firestoreDB, storage } from '../config/firbase.config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
 const PostScreen = () => {
   const [images, setImages] = useState([]);
+  const [titles, settitles] = useState('');
+  const [dates, setdates] = useState(null);
+  const [descriptions, setdescriptions] = useState('');
   const [progress, setProgress] = useState(0);
   const [files, setFiles] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState('');
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(firestoreDB, 'files'), (snapshot) => {
@@ -51,7 +56,7 @@ const PostScreen = () => {
       }
       const blob = await response.blob();
 
-      const fileRef = ref(storage, 'Pictures/' + new Date().getTime());
+      const fileRef = ref(storage, 'Posts/' + new Date().getTime());
       const uploadTask = uploadBytesResumable(fileRef, blob);
 
       uploadTask.on(
@@ -68,7 +73,7 @@ const PostScreen = () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             console.log('File available at', downloadURL);
-            await saveRecord(fileType, downloadURL, new Date().toISOString());
+            await saveRecord(titles, fileType, downloadURL, new Date().toISOString(), descriptions, dates, selectedDepartment);
             setProgress(0); // Reset progress after upload completes
           } catch (error) {
             console.error('Failed to get download URL:', error);
@@ -80,27 +85,39 @@ const PostScreen = () => {
     }
   }
 
-  async function saveRecord(fileType, url, createdAt) {
+  async function saveRecord(titles, fileType, url, createdAt, descriptions, dates, selectedDepartment) {
     try {
       const docRef = await addDoc(collection(firestoreDB, 'files'), {
+        title: titles,
         fileType,
         url,
         createdAt,
+        description: descriptions,
+        date: dates,
+        views: null,
+        likes: null,
+        department: selectedDepartment,
       });
-      console.log('Document Saved', docRef.id);
+      console.log('Post Added', docRef.id);
     } catch (e) {
       console.error('Error saving record:', e);
     }
   }
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (event, date) => {
     setShowDatePicker(false); // Close date picker after selection
-    if (selectedDate) {
-      setSelectedDate(selectedDate);
+    if (date) {
+      setSelectedDate(date);
+      setdates(date.toISOString());
     }
   };
 
   const handlePost = () => {
+    if (titles === '' || descriptions === '' || dates === null || selectedDepartment === '') {
+      Alert.alert('Error', 'Please fill all the fields.');
+      return;
+    }
+
     images.forEach((imageUri) => {
       uploadImage(imageUri, 'image');
     });
@@ -112,70 +129,93 @@ const PostScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Ionicons name='arrow-back' size={24} color={'#000000'} />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handlePost}>
-          <Text style={styles.postButton}>Post</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder='Title of Event'
-          placeholderTextColor={'#777'}
-        />
-        <TextInput
-          style={[styles.textInput, { marginTop: 30 }]}
-          placeholder='Description of Event'
-          placeholderTextColor={'#777'}
-        />
-      </View>
-      <View style={styles.datePickerContainer}>
-        <Text style={styles.datePickerLabel}>What day is the event?
-        </Text>
-        <View style={{marginTop:10}}/>
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.datePickerText}>{selectedDate.toDateString()}</Text>
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            testID='dateTimePicker'
-            value={selectedDate}
-            mode='date'
-            display='default'
-            onChange={handleDateChange}
-          />
-        )}
-      </View>
-      <View style={{
-        marginTop: 30,
-        
-      }}> 
-        <Text style={{
-          marginHorizontal: 30,
-          marginVertical: 10,
-          fontWeight: '400',
-        fontSize: 20}}>
-          Please Select a Picture to upload
-        </Text>
-      </View>
       <ScrollView>
-        {images.map((img, index) => (
-          <View key={index} style={styles.imageContainer}>
-            <Image source={{ uri: img }} style={styles.image} />
-            <TouchableOpacity style={styles.removeButton} onPress={() => removeImage(index)}>
-              <Ionicons name='close-circle' size={24} color={'grey'} />
-            </TouchableOpacity>
-          </View>
-        ))}
+        <View style={styles.header}>
+          <TouchableOpacity>
+            <Ionicons name='arrow-back' size={24} color={'#000000'} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handlePost}>
+            <Text style={styles.postButton}>Post</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.textInput}
+            placeholder='Title of Event'
+            placeholderTextColor={'#777'}
+            onChangeText={(content) => settitles(content)}
+          />
+          <TextInput
+            style={[styles.textInput, { marginTop: 30 }]}
+            placeholder='Description of Event'
+            placeholderTextColor={'#777'}
+            onChangeText={(decontent) => setdescriptions(decontent)}
+          />
+        </View>
+        <View style={styles.datePickerContainer}>
+          <Text style={styles.datePickerLabel}>What day is the event?</Text>
+          <View style={{ marginTop: 10 }} />
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.datePickerText}>{selectedDate.toDateString()}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              testID='dateTimePicker'
+              value={selectedDate}
+              mode='date'
+              display='default'
+              onChange={handleDateChange}
+            />
+          )}
+        </View>
+        <View style={styles.departmentPickerContainer}>
+          <Text style={styles.departmentPickerLabel}>Select Department:</Text>
+          <Picker
+            selectedValue={selectedDepartment}
+            onValueChange={(itemValue, itemIndex) => setSelectedDepartment(itemValue)}
+            style={styles.picker}
+          >
+            <Picker.Item label="Select a department" value="" />
+            <Picker.Item label="ALL" value="All" />
+            <Picker.Item label="Computer Science" value="Comp" />
+            <Picker.Item label="Electrical Engineering" value="Elect" />
+            <Picker.Item label="Mechanical Engineering" value="Mech" />
+            <Picker.Item label="Finance" value="finance" />
+            <Picker.Item label="Mass Communication" value="MassCom" />
+            <Picker.Item label="Accounting" value="Acc" />
+            <Picker.Item label="Business Administration" value="Bus Admin" />
+            <Picker.Item label="Information Science Media Studies" value="ISMS" />
+            <Picker.Item label="Economics" value="Econs" />
+            <Picker.Item label="Software Engineering" value="Seng" />
+            {/* Add more departments as needed */}
+          </Picker>
+        </View>
+        <View style={{ marginTop: 150 }}>
+          <Text style={{
+            marginHorizontal: 30,
+            marginVertical: 10,
+            fontWeight: '400',
+            fontSize: 20
+          }}>
+            Please Select a Picture to upload
+          </Text>
+        </View>
+        <ScrollView>
+          {images.map((img, index) => (
+            <View key={index} style={styles.imageContainer}>
+              <Image source={{ uri: img }} style={styles.image} />
+              <TouchableOpacity style={styles.removeButton} onPress={() => removeImage(index)}>
+                <Ionicons name='close-circle' size={24} color={'grey'} />
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+        <View style={{ flex: 1 }}>
+          <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
+            <Ionicons name='image' size={24} color={'white'} />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
-      <View style={{ flex: 1 }}>
-        <TouchableOpacity onPress={pickImage} style={styles.uploadButton}>
-          <Ionicons name='image' size={24} color={'white'} />
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -204,54 +244,57 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    fontSize: 16,
-    color: '#333',
-    marginLeft: 8,
-    height: 48,
   },
   datePickerContainer: {
-    marginHorizontal: 30,
-    marginVertical: 10,
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
   datePickerLabel: {
-    marginTop: 20,
-    fontWeight: '500',
     fontSize: 16,
+    fontWeight: '500',
   },
   datePickerText: {
-    marginTop: 5,
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '400',
+    marginTop: 8,
+    color: '#000',
   },
-  uploadButton: {
-    position: 'absolute',
-    bottom: 90,
-    right: 30,
-    width: 44,
-    height: 44,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 25,
+  departmentPickerContainer: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  departmentPickerLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
   imageContainer: {
-    position: 'relative',
-    margin: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 8,
+    marginHorizontal: 16,
   },
   image: {
-    width: 300,
-    height: 300,
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
   removeButton: {
     position: 'absolute',
-    top: 5,
-    right: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 12,
-    padding: 5,
+    top: 0,
+    right: 0,
+  },
+  uploadButton: {
+    backgroundColor: '#000',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    marginHorizontal: 16,
   },
 });
 

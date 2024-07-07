@@ -1,89 +1,74 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Awards } from '../assets';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { collection, doc, increment, onSnapshot, updateDoc } from 'firebase/firestore';
+import { firestoreDB } from '../config/firbase.config';
 
 const HomeScreen = () => {
+  const [events, setEvents] = useState([]);
+  const [likedEvents, setLikedEvents] = useState({});
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(firestoreDB, 'files'), (snapshot) => {
+      const eventsData = [];
+      snapshot.forEach((doc) => {
+        eventsData.push({ id: doc.id, ...doc.data() });
+      });
+      setEvents(eventsData);
+    });
+
+    return () => unsubscribe();
+  }, []);
+  const handleLike = async (eventId) => {
+    const eventDocRef = doc(firestoreDB, 'files', eventId);
+    const isLiked = likedEvents[eventId];
+
+    // Update the local liked state
+    setLikedEvents((prevLikedEvents) => ({
+      ...prevLikedEvents,
+      [eventId]: !isLiked,
+    }));
+
+    // Update the likes count in Firestore
+    try {
+      await updateDoc(eventDocRef, {
+        likes: increment(isLiked ? -1 : 1),
+      });
+    } catch (error) {
+      console.error('Error updating likes:', error);
+    }
+  };
+
   return (
-    <ScrollView>
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Grad Party!!!!!!!!</Text>
-        <Text style={styles.date}>12/06/2024</Text>
-        <Image style={styles.image} source={require('../assets/images/grad.jpeg')}/>
-        <Text style={styles.description}>
-          Join Alo at his graduation party in December 
-        </Text>
-        
-          <View style={styles.interaction}>
-            <View style={styles.interactionsbox}>
-          <TouchableOpacity>
-          <Ionicons name = 'heart-outline' size={24}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Like</Text>
-            </View>
-            <View style={styles.interactionsbox}>
-            <TouchableOpacity>
-          <MaterialCommunityIcons name = 'share-outline' size={28}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Share</Text>
-            </View>
-          </View>
-        
-      </View>
-    </View>
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>PAU Awards Night</Text>
-        <Text style={styles.date}>12/06/2024</Text>
-        <Image style={styles.image} source={require('../assets/images/award.jpg')}/>
-        <Text style={styles.description}>
-          Ready to receive your award, Vote and come to see your candidate win!!!
-        </Text>
-        
-          <View style={styles.interaction}>
-            <View style={styles.interactionsbox}>
-          <TouchableOpacity>
-          <Ionicons name = 'heart-outline' size={24}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Like</Text>
-            </View>
-            <View style={styles.interactionsbox}>
-            <TouchableOpacity>
-          <MaterialCommunityIcons name = 'share-outline' size={28}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Share</Text>
+    <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      {events.map((event, index) => (
+        <View key={index} style={styles.container}>
+          <View style={styles.card}>
+            <Text style={styles.title}>{event.title}</Text>
+            <Text style={styles.date}>{new Date(event.date).toLocaleDateString()}</Text>
+            <Image style={styles.image} source={{ uri: event.url }} />
+            <Text style={styles.description}>{event.description}</Text>
+            <View style={styles.interaction}>
+              <TouchableOpacity 
+              style={styles.interactionsbox}
+              onPress={() => handleLike(event.id)}>
+                 <Ionicons 
+                  name={likedEvents[event.id] ? 'heart' : 'heart-outline'} 
+                  size={24} 
+                  color={likedEvents[event.id] ? 'red' : 'black'} 
+                />
+                <Text style={styles.interactiontext}>
+                {likedEvents[event.id] ? 'Likes' : 'Like'} ({event.likes || 0})
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.interactionsbox}>
+                <MaterialCommunityIcons name='share-outline' size={28} />
+                <Text style={styles.interactiontext}>Share</Text>
+              </TouchableOpacity>
             </View>
           </View>
-        
-      </View>
-    </View>
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <Text style={styles.title}>PAU Student Festival</Text>
-        <Text style={styles.date}>12/06/2024</Text>
-        <Image style={styles.image} source={require('../assets/images/film.jpg')}/>
-        <Text style={styles.description}>
-          PAUSFF is ready to bring a wonderful documentary right to your screens on Friday. Join us and watch talent in action
-        </Text>
-        
-          <View style={styles.interaction}>
-            <View style={styles.interactionsbox}>
-          <TouchableOpacity>
-          <Ionicons name = 'heart-outline' size={24}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Like</Text>
-            </View>
-            <View style={styles.interactionsbox}>
-            <TouchableOpacity>
-          <MaterialCommunityIcons name = 'share-outline' size={28}/>
-          </TouchableOpacity>
-          <Text style={styles.interactiontext}>Share</Text>
-            </View>
-          </View>
-        
-      </View>
-    </View>
+        </View>
+      ))}
     </ScrollView>
   );
 };
@@ -91,26 +76,24 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    flex: 1,
+  scrollViewContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
-  text: {
-    fontSize: 20,
+  container: {
+    backgroundColor: '#fff',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   card: {
     backgroundColor: '#f8f8f8',
     width: '100%',
-    marginBottom: 10,
     borderRadius: 10,
     padding: 10,
-  },
-  info: {
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
   },
   title: {
     fontSize: 18,
@@ -119,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   description: {
-    marginTop:10,
+    marginTop: 10,
     fontSize: 14,
     fontWeight: 'normal',
     fontFamily: 'Nunito',
@@ -130,30 +113,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Lato-Regular',
     color: '#665',
   },
-  image:{
+  image: {
     width: '100%',
     height: 250,
-    marginTop:15,
-
+    marginTop: 15,
   },
-  interactionsbox:{
+  interactionsbox: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
-  interaction:{
-    flexDirection:'row',
-    justifyContent:'center',
-    borderRadius:4,
-    paddingLeft:5,
-    paddingRight:5
+  interaction: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  interactiontext:{
-    fontSize:12,
+  interactiontext: {
+    fontSize: 12,
     fontFamily: 'Lato-Regular',
-    fontWeight:'bold',
-    color:'#665',
-    marginTop:5,
-    marginLeft: 5
-  },    
+    fontWeight: 'bold',
+    color: '#665',
+    marginLeft: 5,
+  },
 });

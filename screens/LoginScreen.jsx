@@ -52,6 +52,10 @@ const LoginScreen = () => {
         setalert(true);
         setalertmessage("Invalid Email or Password entered");
       }
+      if(err.message.includes("auth/network-request-failed")){
+        setalert(true);
+        setalertmessage("A network error has occured, please try again");
+      }
       setInterval(() => {
         setalert(false);
       },
