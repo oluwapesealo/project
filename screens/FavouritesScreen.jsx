@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Entypo, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { firestoreDB } from '../config/firbase.config';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const FavouritesScreen = () => {
+  const user = useSelector(state => state.user.user);
+  const navigation = useNavigation();
   const [likedPosts, setLikedPosts] = useState([]);
 
   useEffect(() => {
@@ -27,6 +31,46 @@ const FavouritesScreen = () => {
   }, []);
 
   return (
+    <SafeAreaView style={{
+      flex: 1,
+    }}>
+      <View style={{
+          width: '100%',
+          height: 50, // Adjust height as needed
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          position: 'relative'
+        }}>
+          <TouchableOpacity>
+            <Entypo name='menu' size={28} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+            <Text style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              color: '#2F3B6A',
+            }}>PAUBOARD</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+           
+            <Ionicons name='person-outline' size={18} />
+            
+            <Text style={{
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 'bold',
+              color: '#2F3B6A',
+            }}>
+              {user?.name ?? 'Alo Oluwapese'}
+            </Text>
+          </View>
+          </TouchableOpacity>
+        </View>
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
       {likedPosts.length === 0 ? (
         <Text style={styles.noPostsText}>No liked posts yet.</Text>
@@ -53,6 +97,7 @@ const FavouritesScreen = () => {
         ))
       )}
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

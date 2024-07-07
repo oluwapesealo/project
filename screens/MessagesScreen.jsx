@@ -109,11 +109,11 @@ const MessagesScreen = () => {
               color: '#2F3B6A',
             }}>PAUBOARD</Text>
           </View>
-          
+          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+            
             <Ionicons name='person-outline' size={18} />
-            </TouchableOpacity>
+            
             <Text style={{
               marginTop: 4,
               fontSize: 13,
@@ -123,6 +123,7 @@ const MessagesScreen = () => {
               {user?.name ?? 'Alo Oluwapese'}
             </Text>
           </View>
+          </TouchableOpacity>
         </View>
         <LinearGradient
           colors={['#2F3B6A', '#bdbcbc']}

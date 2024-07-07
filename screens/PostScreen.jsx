@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { addDoc, collection, onSnapshot } from 'firebase/firestore';
@@ -8,8 +8,12 @@ import { firestoreDB, storage } from '../config/firbase.config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 const PostScreen = () => {
+  const user = useSelector(state => state.user.user);
+  const navigation = useNavigation();
   const [images, setImages] = useState([]);
   const [titles, settitles] = useState('');
   const [dates, setdates] = useState(null);
@@ -129,6 +133,43 @@ const PostScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <View style={{
+          width: '100%',
+          height: 50, // Adjust height as needed
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          position: 'relative'
+        }}>
+          <TouchableOpacity>
+            <Entypo name='menu' size={28} resizeMode="contain" />
+          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+            <Text style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              color: '#2F3B6A',
+            }}>PAUBOARD</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+           
+            <Ionicons name='person-outline' size={18} />
+            
+            <Text style={{
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 'bold',
+              color: '#2F3B6A',
+            }}>
+              {user?.name ?? 'Alo Oluwapese'}
+            </Text>
+          </View>
+          </TouchableOpacity>
+        </View>
       <ScrollView>
         <View style={styles.header}>
           <TouchableOpacity>
@@ -226,24 +267,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 0,
-    borderBottomWidth: 1,
+    paddingVertical: 15,
     borderBottomColor: '#000000',
   },
   postButton: {
     fontWeight: '700',
   },
   inputContainer: {
-    marginTop: 10,
+    marginTop: 5,
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
   textInput: {
     width: '100%',
     paddingHorizontal: 16,
-    paddingVertical: 2,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
+    fontSize:14
   },
   datePickerContainer: {
     marginTop: 20,
@@ -254,7 +295,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   datePickerText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '400',
     marginTop: 8,
     color: '#000',
@@ -268,7 +309,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   picker: {
-    height: 50,
+    height: 45,
     width: '100%',
   },
   imageContainer: {

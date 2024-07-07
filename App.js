@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider } from "react-redux";
 import Store from "./context/store";
-import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen, PostScreen, PostingScreen } from "./screens";
+import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen, PostScreen, PostingScreen, EventScreen } from "./screens";
 import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
@@ -13,6 +13,7 @@ const Tab = createBottomTabNavigator();
 const MainTabs = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
+      headerShown: false,
       tabBarIcon: ({ color, size }) => {
         let iconName;
 
@@ -59,6 +60,7 @@ const App = () => {
           <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
           <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="EventScreen" component={EventScreen} />
           <Stack.Screen name="MainTabs" component={MainTabs} />
         </Stack.Navigator>
       </NavigationContainer>

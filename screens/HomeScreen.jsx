@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { Entypo, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { collection, doc, increment, onSnapshot, updateDoc } from 'firebase/firestore';
 import { firestoreDB } from '../config/firbase.config';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
+  const user = useSelector(state => state.user.user);
+  const navigation = useNavigation();
   const [events, setEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState({});
 
@@ -19,6 +23,7 @@ const HomeScreen = () => {
 
     return () => unsubscribe();
   }, []);
+
   const handleLike = async (eventId) => {
     const eventDocRef = doc(firestoreDB, 'files', eventId);
     const isLiked = likedEvents[eventId];
@@ -39,43 +44,101 @@ const HomeScreen = () => {
     }
   };
 
+  const handleEventPress = (event) => {
+    navigation.navigate('EventScreen', { event });
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
-      {events.map((event, index) => (
-        <View key={index} style={styles.container}>
-          <View style={styles.card}>
-            <Text style={styles.title}>{event.title}</Text>
-            <Text style={styles.date}>{new Date(event.date).toLocaleDateString()}</Text>
-            <Image style={styles.image} source={{ uri: event.url }} />
-            <Text style={styles.description}>{event.description}</Text>
-            <View style={styles.interaction}>
-              <TouchableOpacity 
-              style={styles.interactionsbox}
-              onPress={() => handleLike(event.id)}>
-                 <Ionicons 
-                  name={likedEvents[event.id] ? 'heart' : 'heart-outline'} 
-                  size={24} 
-                  color={likedEvents[event.id] ? 'red' : 'black'} 
-                />
-                <Text style={styles.interactiontext}>
-                {likedEvents[event.id] ? 'Likes' : 'Like'} ({event.likes || 0})
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.interactionsbox}>
-                <MaterialCommunityIcons name='share-outline' size={28} />
-                <Text style={styles.interactiontext}>Share</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <TouchableOpacity>
+          <Entypo name='menu' size={28} resizeMode="contain" />
+        </TouchableOpacity>
+        <View style={styles.headerTitle}>
+          <Text style={styles.headerText}>PAUBOARD</Text>
         </View>
-      ))}
-    </ScrollView>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+          <View style={styles.profileContainer}>
+            <Ionicons name='person-outline' size={18} />
+            <Text style={styles.profileName}>
+              {user?.name ?? 'Alo Oluwapese'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        {events.map((event, index) => (
+          <TouchableOpacity key={index} style={styles.container}onPress={() => handleEventPress(event)} >
+            <View style={styles.card}>
+              <Text style={styles.title}>{event.title}</Text>
+              <Text style={styles.date}>{new Date(event.date).toLocaleDateString()}</Text>
+              <Image style={styles.image} source={{ uri: event.url }} />
+              <Text style={styles.description}>{event.description}</Text>
+              <View style={styles.interaction}>
+                <TouchableOpacity 
+                  style={styles.interactionsBox}
+                  onPress={() => handleLike(event.id)}>
+                  <Ionicons 
+                    name={likedEvents[event.id] ? 'heart' : 'heart-outline'} 
+                    size={24} 
+                    color={likedEvents[event.id] ? 'red' : 'black'} 
+                  />
+                  <Text style={styles.interactionText}>
+                    {likedEvents[event.id] ? 'Likes' : 'Like'} ({event.likes || 0})
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.interactionsBox}>
+                  <MaterialCommunityIcons name='share-outline' size={28} />
+                  <Text style={styles.interactionText}>Share</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  header: {
+    width: '100%',
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: 'relative',
+  },
+  headerTitle: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#2F3B6A',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileName: {
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2F3B6A',
+  },
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'center',
@@ -118,17 +181,17 @@ const styles = StyleSheet.create({
     height: 250,
     marginTop: 15,
   },
-  interactionsbox: {
+  interactionsBox: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 10,
   },
   interaction: {
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  interactiontext: {
+  interactionText: {
     fontSize: 12,
     fontFamily: 'Lato-Regular',
     fontWeight: 'bold',
