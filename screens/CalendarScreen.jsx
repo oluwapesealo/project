@@ -16,7 +16,7 @@ const CalendarScreen = () => {
     
       <View style={{
           width: '100%',
-          height: 50, // Adjust height as needed
+          height: 50, 
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -45,8 +45,9 @@ const CalendarScreen = () => {
               fontSize: 13,
               fontWeight: 'bold',
               color: '#2F3B6A',
+              paddingHorizontal: 20,
             }}>
-              {user?.name ?? 'Alo Oluwapese'}
+              {user?.username ?? 'Alo Oluwapese'}
             </Text>
           </View>
           </TouchableOpacity>

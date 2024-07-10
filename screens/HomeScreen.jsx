@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
-import { Entypo, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { collection, doc, increment, onSnapshot, updateDoc } from 'firebase/firestore';
-import { firestoreDB } from '../config/firbase.config';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView, TextInput } from 'react-native';
+import { Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { collection, doc, increment, onSnapshot, updateDoc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { firestoreDB } from '../config/firbase.config'; // Ensure correct import path
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { setLikedPosts } from './FavouritesScreen';
+import { Share } from 'react-native';
 
 const HomeScreen = () => {
   const user = useSelector(state => state.user.user);
   const navigation = useNavigation();
   const [events, setEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [FilteredEvents, setFilteredEvents] = useState([]);
+  const [likedPosts, setLikedPosts] = useState([]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(firestoreDB, 'files'), (snapshot) => {
@@ -18,76 +23,214 @@ const HomeScreen = () => {
       snapshot.forEach((doc) => {
         eventsData.push({ id: doc.id, ...doc.data() });
       });
+      eventsData.sort((a, b) => new Date(b.date) - new Date(a.date));
       setEvents(eventsData);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleLike = async (eventId) => {
+  useEffect(() => {
+    if (searchQuery.trim() !== '') {
+      searchEvents(searchQuery.trim());
+    } else {
+      setFilteredEvents([]);
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (user) {
+      fetchLikedPosts(user._id);
+    }
+  }, [user]);
+
+
+  const sharing = async( title, fileType, url, description, date,) => {
+    const shareoptions = {
+      message: title + '\n'+ description + '\n' + date,
+    }
+    try {
+      const shareresponse = await Share.share(shareoptions);
+
+    }
+    catch(error){
+      console.log('Error: ', error)
+    }
+  };
+  const searchEvents = async (query) => {
+    try {
+      const q = query ? query(collection(firestoreDB, 'files'), where('title', '>=', query.trim())) : collection(firestoreDB, 'files');
+
+      onSnapshot(q, (querySnapshot) => {
+        const files = querySnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        const filteredEvents = query ? files.filter(file =>
+          file.title && file.title.toLowerCase().includes(query.toLowerCase())
+        ) : files;
+
+        setFilteredEvents(filteredEvents);
+      });
+    } catch (error) {
+      console.error('Error searching events:', error);
+    }
+  };
+
+  const fetchLikedPosts = async (userId) => {
+    try {
+      const likedPostsQuery = query(collection(firestoreDB, 'favorites'), where('likedBy', '==', userId));
+      const snapshot = await onSnapshot(likedPostsQuery, (querySnapshot) => {
+        const likedPostsData = {};
+        querySnapshot.forEach((doc) => {
+          likedPostsData[doc.id] = true; // Store liked event IDs in an object for quick lookup
+        });
+        setLikedEvents(likedPostsData);
+      });
+    } catch (error) {
+      console.error('Error fetching liked posts:', error);
+    }
+  };
+
+  const handleLike = async (eventId, title, fileType, url, createdAt, description, date, department, likes, userId) => {
     const eventDocRef = doc(firestoreDB, 'files', eventId);
+    const favoriteDocRef = doc(firestoreDB, 'favorites', eventId);
     const isLiked = likedEvents[eventId];
 
-    // Update the local liked state
+    // Toggle local liked status
     setLikedEvents((prevLikedEvents) => ({
       ...prevLikedEvents,
       [eventId]: !isLiked,
     }));
 
-    // Update the likes count in Firestore
     try {
+      // Update likes count in Firestore
       await updateDoc(eventDocRef, {
         likes: increment(isLiked ? -1 : 1),
       });
+
+      if (!isLiked) {
+        // Add event to favorites collection
+        await setDoc(favoriteDocRef, {
+          title,
+          fileType,
+          url,
+          createdAt,
+          description,
+          date,
+          department,
+          likes: likes + 1,
+          likedBy: userId,
+        });
+      } else {
+        // Remove event from favorites collection
+        await deleteDoc(favoriteDocRef);
+      }
     } catch (error) {
-      console.error('Error updating likes:', error);
+      console.error('Error updating likes or favorites:', error);
     }
   };
 
-  const handleEventPress = (event) => {
+  const handleEventPress = async (event) => {
+    const { id, views } = event;
+    const eventDocRef = doc(firestoreDB, 'files', id);
+
+    try {
+      // Update views count in Firestore
+      await updateDoc(eventDocRef, {
+        views: views + 1,
+      });
+    } catch (error) {
+      console.error('Error updating views:', error);
+    }
+
     navigation.navigate('EventScreen', { event });
+  };
+
+  const handleMenuPress = () => {
+    if (navigation && navigation.openDrawer) {
+      navigation.openDrawer();
+    } else {
+      console.warn('Navigation object or openDrawer function is not available.');
+    }
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleMenuPress}>
           <Entypo name='menu' size={28} resizeMode="contain" />
         </TouchableOpacity>
         <View style={styles.headerTitle}>
           <Text style={styles.headerText}>PAUBOARD</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <View style={styles.profileContainer}>
             <Ionicons name='person-outline' size={18} />
             <Text style={styles.profileName}>
-              {user?.name ?? 'Alo Oluwapese'}
+              {user?.username ?? 'Alo Oluwapese'}
             </Text>
           </View>
         </TouchableOpacity>
       </View>
+      <View style={styles.searchBarContainer}>
+        <Ionicons name='chatbubbles' size={24} color={'#777'} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder='Search'
+          placeholderTextColor={'#777'}
+          value={searchQuery}
+          onSubmitEditing={() => {
+            if (searchQuery.trim() !== "") {
+              searchEvents(searchQuery);
+            }
+          }}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+        <TouchableOpacity onPress={() => searchEvents(searchQuery)}>
+          <FontAwesome name='send' size={24} color={'#777'} />
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {events.map((event, index) => (
-          <TouchableOpacity key={index} style={styles.container}onPress={() => handleEventPress(event)} >
+        {(searchQuery.trim() === '' ? events : FilteredEvents).map((event, index) => (
+          <TouchableOpacity key={index} style={styles.container} onPress={() => handleEventPress(event)}>
             <View style={styles.card}>
               <Text style={styles.title}>{event.title}</Text>
               <Text style={styles.date}>{new Date(event.date).toLocaleDateString()}</Text>
               <Image style={styles.image} source={{ uri: event.url }} />
               <Text style={styles.description}>{event.description}</Text>
               <View style={styles.interaction}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.interactionsBox}
-                  onPress={() => handleLike(event.id)}>
-                  <Ionicons 
-                    name={likedEvents[event.id] ? 'heart' : 'heart-outline'} 
-                    size={24} 
-                    color={likedEvents[event.id] ? 'red' : 'black'} 
+                  onPress={() => handleLike(
+                    event.id,
+                    event.title,
+                    event.fileType,
+                    event.url,
+                    event.createdAt,
+                    event.description,
+                    event.date,
+                    event.department,
+                    event.likes,
+                    user._id,
+                  )}
+                >
+                  <Ionicons
+                    name={likedEvents[event.id] ? 'heart' : 'heart-outline'}
+                    size={24}
+                    color={likedEvents[event.id] ? 'red' : 'black'}
                   />
                   <Text style={styles.interactionText}>
-                    {likedEvents[event.id] ? 'Likes' : 'Like'} ({event.likes || 0})
+                    {likedEvents[event.id] ? 'Liked' : 'Like'} ({event.likes || 0})
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.interactionsBox}>
+                <TouchableOpacity style={styles.interactionsBox} onPress={() => sharing(
+                    event.title,
+                    event.fileType,
+                    event.url,
+                    event.description,
+                    event.date
+                  )}>
                   <MaterialCommunityIcons name='share-outline' size={28} />
                   <Text style={styles.interactionText}>Share</Text>
                 </TouchableOpacity>
@@ -101,6 +244,7 @@ const HomeScreen = () => {
 };
 
 export default HomeScreen;
+
 
 const styles = StyleSheet.create({
   header: {
@@ -130,6 +274,7 @@ const styles = StyleSheet.create({
     color: '#2F3B6A',
   },
   profileContainer: {
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -138,6 +283,28 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#2F3B6A',
+  },
+  searchBarContainer: {
+    width: '90%',
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 10,
+    marginLeft: 20,
+    padding: 10,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    marginLeft: 8,
+    height: 48,
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -151,6 +318,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
+    borderRadius: 15,
   },
   card: {
     backgroundColor: '#f8f8f8',

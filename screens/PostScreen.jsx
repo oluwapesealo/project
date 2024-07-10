@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView, Alert } from 'react-native';
 import { Entypo, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -10,9 +10,12 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import ProgressBar from '../components/ProgressBar';
+import Uploading from '../components/Uploading';
 
 const PostScreen = () => {
   const user = useSelector(state => state.user.user);
+  const [uploading, setUploading] = useState(false);
   const navigation = useNavigation();
   const [images, setImages] = useState([]);
   const [titles, settitles] = useState('');
@@ -53,16 +56,17 @@ const PostScreen = () => {
   }
 
   async function uploadImage(uri, fileType) {
+    setUploading(true);
     try {
       const response = await fetch(uri);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
       const blob = await response.blob();
-
-      const fileRef = ref(storage, 'Posts/' + new Date().getTime());
+  
+      const fileRef = ref(storage, 'Posts/' + new Date());
       const uploadTask = uploadBytesResumable(fileRef, blob);
-
+  
       uploadTask.on(
         'state_changed',
         (snapshot) => {
@@ -72,22 +76,29 @@ const PostScreen = () => {
         },
         (error) => {
           console.error('Upload failed:', error);
+          setUploading(false); // Reset uploading state if there is an error
         },
         async () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             console.log('File available at', downloadURL);
-            await saveRecord(titles, fileType, downloadURL, new Date().toISOString(), descriptions, dates, selectedDepartment);
+            const formattedDate = dates.split('T')[0]; // Extract only the date part
+            await saveRecord(titles, fileType, downloadURL, new Date().toISOString(), descriptions, formattedDate, selectedDepartment);
             setProgress(0); // Reset progress after upload completes
+            setUploading(false); // Reset uploading state after upload completes
+            navigation.navigate('Home'); // Redirect to Home screen after upload completes
           } catch (error) {
             console.error('Failed to get download URL:', error);
+            setUploading(false); // Reset uploading state if there is an error
           }
         }
       );
     } catch (error) {
       console.error('Error uploading image:', error);
+      setUploading(false); // Reset uploading state if there is an error
     }
   }
+  
 
   async function saveRecord(titles, fileType, url, createdAt, descriptions, dates, selectedDepartment) {
     try {
@@ -97,7 +108,7 @@ const PostScreen = () => {
         url,
         createdAt,
         description: descriptions,
-        date: dates,
+        date: dates, // dates already formatted to contain only the date part
         views: null,
         likes: null,
         department: selectedDepartment,
@@ -112,7 +123,7 @@ const PostScreen = () => {
     setShowDatePicker(false); // Close date picker after selection
     if (date) {
       setSelectedDate(date);
-      setdates(date.toISOString());
+      setdates(date.toISOString().split('T')[0]); // Extract only the date part
     }
   };
 
@@ -130,55 +141,46 @@ const PostScreen = () => {
   const removeImage = (index) => {
     setImages(images.filter((_, i) => i !== index));
   };
-
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{
-          width: '100%',
-          height: 50, // Adjust height as needed
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 16,
-          paddingVertical: 8,
-          position: 'relative'
-        }}>
-          <TouchableOpacity>
-            <Entypo name='menu' size={28} resizeMode="contain" />
-          </TouchableOpacity>
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-            <Text style={{
-              fontSize: 24,
-              fontWeight: 'bold',
-              textAlign: 'center',
-              color: '#2F3B6A',
-            }}>PAUBOARD</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
+        width: '100%',
+        height: 50, // Adjust height as needed
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        position: 'relative'
+      }}>
+        <TouchableOpacity>
+          <Entypo name='menu' size={28} resizeMode="contain" />
+        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+          <Text style={{
+            fontSize: 24,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            color: '#2F3B6A',
+          }}>PAUBOARD</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
           <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-           
             <Ionicons name='person-outline' size={18} />
-            
             <Text style={{
               marginTop: 4,
               fontSize: 13,
               fontWeight: 'bold',
               color: '#2F3B6A',
+              paddingHorizontal: 20,
             }}>
-              {user?.name ?? 'Alo Oluwapese'}
+              {user?.username ?? 'Alo Oluwapese'}
             </Text>
           </View>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+      </View>
       <ScrollView>
-        <View style={styles.header}>
-          <TouchableOpacity>
-            <Ionicons name='arrow-back' size={24} color={'#000000'} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handlePost}>
-            <Text style={styles.postButton}>Post</Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.header}></View>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.textInput}
@@ -187,7 +189,7 @@ const PostScreen = () => {
             onChangeText={(content) => settitles(content)}
           />
           <TextInput
-            style={[styles.textInput, { marginTop: 30 }]}
+            style={[styles.textInput, { marginTop: 20 }]}
             placeholder='Description of Event'
             placeholderTextColor={'#777'}
             onChangeText={(decontent) => setdescriptions(decontent)}
@@ -256,10 +258,14 @@ const PostScreen = () => {
             <Ionicons name='image' size={24} color={'white'} />
           </TouchableOpacity>
         </View>
+        <TouchableOpacity onPress={handlePost}>
+          <View style={styles.postButton}><Text style={styles.posttext}>Post</Text></View>
+        </TouchableOpacity>
+        {uploading && <Uploading progress={progress} />}
       </ScrollView>
     </SafeAreaView>
   );
-};
+}  
 
 const styles = StyleSheet.create({
   header: {
@@ -267,11 +273,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 15,
+    paddingVertical: 0,
     borderBottomColor: '#000000',
   },
   postButton: {
-    fontWeight: '700',
+    backgroundColor: '#000',
+    padding: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    marginHorizontal: 16,
   },
   inputContainer: {
     marginTop: 5,
@@ -279,9 +291,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   textInput: {
+    borderWidth: 0.5,
+    borderRadius: 10,
     width: '100%',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 22,
     flexDirection: 'row',
     alignItems: 'center',
     fontSize:14
@@ -329,14 +343,20 @@ const styles = StyleSheet.create({
     right: 0,
   },
   uploadButton: {
+    width:'15%',
     backgroundColor: '#000',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: 16,
     marginHorizontal: 16,
   },
+  posttext:{
+    fontWeight: '700',
+    fontSize: 16,
+    color: 'white'
+  }
 });
 
 export default PostScreen;

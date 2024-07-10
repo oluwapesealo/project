@@ -2,14 +2,14 @@ import React from 'react';
 import { Image, Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 import ProgressBar from './ProgressBar';
 
-export function Uploading({ image, progress }) {
+export function Uploading({ images, progress }) {
     return (
         <View style={styles.overlay}>
             <View style={styles.container}>
-                {image && (
+                {images && (
                     <Image
-                        source={{ uri: image }} // Correct usage of the image URI
-                        style={styles.image}
+                        source={{ uri: images }} // Correct usage of the image URI
+                        style={styles.images}
                     />
                 )}
                 <Text style={styles.text}>
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
         paddingVertical : 30,
         alignItems: 'center',
     },
-    image: {
+    images: {
         width: 100,
         height: 100,
         resizeMode: 'contain',
@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
         width: 120,
         borderColor: '#00000050',
         marginVertical: 15,
-        marginTop:5
+        marginTop:10,
+        marginBottom:5
     },
     cancelButton: {
         fontWeight: '500',

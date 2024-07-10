@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider } from "react-redux";
 import Store from "./context/store";
-import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen, PostScreen, PostingScreen, EventScreen } from "./screens";
+import { SplashScreen, LoginScreen, SignUpScreen, HomeScreen, CalendarScreen, MessagesScreen, ProfileScreen, FavouritesScreen, AddToChatScreen, ChatScreen, PostScreen, PostingScreen, EventScreen, DashboardScreen, DashboardEvents } from "./screens";
 import { Ionicons } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +29,8 @@ const MainTabs = () => (
           iconName = 'star';
         } else if (route.name === 'Post') {
           iconName = 'send';
+        } else if (route.name === 'Dashboard') {
+          iconName = 'tv-outline';
         }
         return <Ionicons name={iconName} size={size} color={color} />;
       },
@@ -45,7 +47,7 @@ const MainTabs = () => (
     <Tab.Screen name="Favourites" component={FavouritesScreen} />
     <Tab.Screen name="Profile" component={ProfileScreen} />
     <Tab.Screen name="Post" component={PostScreen} />
-    
+    <Tab.Screen name="Dashboard" component={DashboardScreen} />
 
   </Tab.Navigator>
 );
@@ -61,6 +63,8 @@ const App = () => {
           <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
           <Stack.Screen name="EventScreen" component={EventScreen} />
+          <Stack.Screen name="DashboardScreen" component={DashboardScreen} />
+          <Stack.Screen name="DashboardEvents" component={DashboardEvents} />
           <Stack.Screen name="MainTabs" component={MainTabs} />
         </Stack.Navigator>
       </NavigationContainer>

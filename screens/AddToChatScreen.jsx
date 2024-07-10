@@ -1,37 +1,120 @@
-import { View, Text, TouchableOpacity, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { firestoreDB } from '../config/firbase.config';
-import HomeScreen from './HomeScreen';
-import { doc, setDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc } from 'firebase/firestore';
+
 const AddToChatScreen = () => {
     const navigation = useNavigation();
     const user = useSelector(state => state.user.user);
-    const [addchat, setaddchat] = useState('');
-    const CreateNewChat = async () =>{
-        let id = `${Date.now()}`;
 
-        const _doc ={
-            _id : id,
-            user : user,
-            chatName : addchat
-        };
-        if (addchat !==""){
-            setDoc(doc(firestoreDB, "chats", id), _doc).then(() =>{
-                setaddchat("");
-                navigation.replace("HomeScreen");
-            }).catch((err)=>{
-                alert("Error : ", err);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [addchat, setaddchat] = useState('');
+
+    useEffect(() => {
+        if (searchQuery.trim() !== '') {
+            searchUsers(searchQuery.trim());
+        } else {
+            setFilteredUsers([]);
+        }
+    }, [searchQuery]);
+
+    const searchUsers = () => {
+        try {
+            const usersRef = collection(firestoreDB, 'users');
+            const q = query(usersRef);
+            
+            onSnapshot(q, (querySnapshot) => {
+                const users = querySnapshot.docs.map(doc => ({
+                    ...doc.data(),
+                    id: doc.id,
+                }));
+
+                const filteredUsers = users.filter(user =>
+                    user.username && user.username.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                setFilteredUsers(filteredUsers);
             });
+        } catch (error) {
+            console.error('Error searching users:', error);
         }
     };
+    
+    const UserCard = ({ user }) => {
+        return (
+            <TouchableOpacity 
+            value={addchat}
+                    onChangeText={(text) => setaddchat(text)}
+                onPress={() => CreateNewChat()} 
+                
+                style={{
+                    width: '100%',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    paddingTop: 16
+                }}>
+                <View style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#2F3B6A',
+                    padding: 4
+                }}>
+                    <Ionicons name="person" size={26} color="#2F3B6A" />
+                </View>
+                <View style={{
+                    flex: 1,
+                    alignItems: 'flex-start',
+                    justifyContent: 'center',
+                    marginLeft: 16
+                }}>
+                    <Text style={{
+                        color: '#2F3B6A',
+                        fontSize: 16,
+                        fontWeight: '600',
+                        textTransform: 'capitalize'
+                    }}>
+                        {user.username}
+                    </Text>
+                    
+                </View>
+            </TouchableOpacity>
+        );
+    };
+ 
+        const CreateNewChat = async () =>{
+            let id = `${Date.now()}`;
+    
+            const _doc ={
+                _id : id,
+                user : user,
+                chatName : addchat
+            };
+            if (addchat !==""){
+                setDoc(doc(firestoreDB, "chats", id), _doc).then(() =>{
+                    setaddchat("");
+                    navigation.replace("HomeScreen");
+                }).catch((err)=>{
+                    alert("Error : ", err);
+                });
+            }
+            else{
+                console.log('I dont know why')
+            }
+        };
+
     return (
         <View style={{ flex: 1 }}>
             <View style={{
                 width: '100%',
-                backgroundColor: '#2F3B6A', // Replace with your primary color
+                backgroundColor: '#2F3B6A',
                 paddingHorizontal: 16,
                 paddingVertical: 24,
                 flex: 0.25,
@@ -93,19 +176,36 @@ const AddToChatScreen = () => {
                                 flex: 1,
                                 fontSize: 16,
                                 color: '#333',
-                                marginLeft: 8, // Added margin to separate the icon from text input
+                                marginLeft: 8,
                                 height: 48,
                             }}
-                            placeholder='Create a chat'
+                            placeholder='Search users'
                             placeholderTextColor={'#777'}
-                            value={addchat}
-                            onChangeText={(text) => setaddchat(text)}
+                            value={searchQuery}
+                            onSubmitEditing={() => {
+                                if (searchQuery.trim() !== "") {
+                                    searchUsers()
+                                }
+                            }}
+                            onChangeText={(text) => setSearchQuery(text)}
                         />
-                        <TouchableOpacity onPress={CreateNewChat}> 
+                        <TouchableOpacity >
                             <FontAwesome name='send' size={24} color={'#777'} />
                         </TouchableOpacity>
                     </View>
                 </View>
+                {filteredUsers.length > 0 ? (
+                    <FlatList
+                    
+                        data={filteredUsers}
+                        renderItem={({ item }) => <UserCard user={item} />}
+                        keyExtractor={(item) => item.id} // Adjust key as per your data structure
+                    />
+                ) : (
+                    <View style={{ alignItems: 'center', justifyContent: 'center', marginTop:12 }}>
+                        <Text style={{ fontWeight: 600, fontSize: 16}}>No users found</Text>
+                    </View>
+                )}
             </View>
         </View>
     );

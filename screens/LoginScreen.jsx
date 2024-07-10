@@ -70,7 +70,7 @@ const LoginScreen = () => {
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
       <Image 
         source={Leave} 
-        style={{ width: screenWidth, height: 200 }} 
+        style={{ width: screenWidth, height: 300 }} 
         //resizeMode='cover'
       />
       <View style={{ 
@@ -78,7 +78,7 @@ const LoginScreen = () => {
         height: '100%', 
         backgroundColor: 'white', 
         borderTopLeftRadius: 100, 
-        marginTop: -44, 
+        marginTop: -125, 
         alignItems: 'center', 
         justifyContent: 'flex-start', 
         paddingTop: 30, paddingHorizontal: 20, 

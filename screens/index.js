@@ -12,6 +12,12 @@ export {default as CalendarScreen} from "./CalendarScreen";
 export {default as FavouritesScreen} from "./FavouritesScreen";
 export {default as PostScreen} from "./PostScreen";
 export {default as EventScreen} from "./EventScreen";
+export {default as DashboardScreen} from "./DashboardScreen";
+export {default as DashboardEvents} from "./DashboardEvents";
+
+
+
+
 
 
 

@@ -119,8 +119,9 @@ const MessagesScreen = () => {
               fontSize: 13,
               fontWeight: 'bold',
               color: '#2F3B6A',
+              paddingHorizontal: 20,
             }}>
-              {user?.name ?? 'Alo Oluwapese'}
+              {user?.username ?? 'Alo Oluwapese'}
             </Text>
           </View>
           </TouchableOpacity>

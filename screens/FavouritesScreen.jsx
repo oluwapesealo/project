@@ -12,9 +12,9 @@ const FavouritesScreen = () => {
   const [likedPosts, setLikedPosts] = useState([]);
 
   useEffect(() => {
-    const fetchLikedPosts = async () => {
+    const fetchLikedPosts = async (user) => {
       try {
-        const likedPostsQuery = query(collection(firestoreDB, 'files'), where('likes', '>', 0));
+        const likedPostsQuery = query(collection(firestoreDB, 'favorites'), where('likedBy', '==', user));
         const snapshot = await onSnapshot(likedPostsQuery, (querySnapshot) => {
           const likedPostsData = [];
           querySnapshot.forEach((doc) => {
@@ -27,8 +27,29 @@ const FavouritesScreen = () => {
       }
     };
 
-    fetchLikedPosts();
+    fetchLikedPosts(user._id);
   }, []);
+  const searchEvents = async () => {
+    try {
+      const q = query(collection(firestoreDB, 'files'), where('likedBy', '>=', user.id));
+
+      onSnapshot(q, (querySnapshot) => {
+      const files = querySnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      const FilteredEvents = files.filter(files =>
+        files.title && files.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+      setFilteredEvents(FilteredEvents);
+      
+    })
+    } catch (error) {
+      console.error('Error searching events:', error);
+    }
+  };
+
 
   return (
     <SafeAreaView style={{
@@ -65,8 +86,9 @@ const FavouritesScreen = () => {
               fontSize: 13,
               fontWeight: 'bold',
               color: '#2F3B6A',
+              paddingHorizontal: 20,
             }}>
-              {user?.name ?? 'Alo Oluwapese'}
+              {user?.username ?? 'Alo Oluwapese'}
             </Text>
           </View>
           </TouchableOpacity>

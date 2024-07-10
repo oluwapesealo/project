@@ -35,10 +35,7 @@ const ProfileScreen = () => {
           paddingVertical: 8,
           position: 'relative'
         }}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name ='chevron-left' size={32} color={'#555'}/>
-
-        </TouchableOpacity>
+        
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
             <Text style={{
               fontSize: 24,
@@ -47,21 +44,7 @@ const ProfileScreen = () => {
               color: '#2F3B6A',
             }}>PAUBOARD</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-           
-            <Ionicons name='person-outline' size={18} />
-            
-            <Text style={{
-              marginTop: 4,
-              fontSize: 13,
-              fontWeight: 'bold',
-              color: '#2F3B6A',
-            }}>
-              {user?.name ?? 'Alo Oluwapese'}
-            </Text>
-          </View>
-          </TouchableOpacity>
+          
         </View>
         <ScrollView>
       <View style ={{
@@ -72,10 +55,10 @@ const ProfileScreen = () => {
         paddingHorizontal : 16,
         paddingVertical: 16,
       }}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name ='chevron-left' size={32} color={'#555'}/>
 
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <View style={{ 
         width: '100%', 
@@ -99,6 +82,14 @@ const ProfileScreen = () => {
       <View style={{alignItems: 'center', justifyContent: 'center', marginTop:10}}>
         <Text style={{fontSize:18}}>
         {/* {getDisplayName()} */}
+        {user?.username}
+        
+          
+        </Text>
+        <Text style={{fontSize:18, marginTop: 10}}>
+        {/* {getDisplayName()} */}
+       
+        
           {user?.providerData.email}
         </Text>
       </View>
