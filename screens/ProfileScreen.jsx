@@ -2,10 +2,13 @@ import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { firebaseAuth } from '../config/firbase.config';
+import { SET_USER_NULL } from '../context/actions/userActions';
 
 const ProfileScreen = () => {
   const user = useSelector(state => state.user.user);
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   // const getDisplayName = () => {
   //   if (user && user.providerData && user.providerData.email) {
@@ -19,6 +22,17 @@ const ProfileScreen = () => {
   //   }
   //   return '';
   // };
+  const handleLogout = async () => {
+    try{
+    await firebaseAuth.signOut().then(() => {
+      dispatch(SET_USER_NULL());
+      navigation.replace('LoginScreen')
+    })
+  }
+  catch(error){
+    console.log(error)
+  }
+}
   return (
     <SafeAreaView style={{
       flex:1,
@@ -132,6 +146,21 @@ const ProfileScreen = () => {
       <View style={{width:'100%', paddingVertical: 24, marginTop:12}}>
 
       </View>
+      <TouchableOpacity onPress={handleLogout}>
+          <View style={{
+    backgroundColor: '#2F3B6A',
+    padding: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 16,
+    marginHorizontal: 16,
+  }}><Text style={{
+    fontWeight: '700',
+    fontSize: 16,
+    color: 'white'
+  }}>Logout</Text></View>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );

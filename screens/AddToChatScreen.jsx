@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, FlatList, Alert } from 'react-native';
 import { FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { firestoreDB } from '../config/firbase.config';
-import { collection, query, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, onSnapshot, setDoc, doc, where } from 'firebase/firestore';
 
 const AddToChatScreen = () => {
     const navigation = useNavigation();
@@ -12,7 +12,6 @@ const AddToChatScreen = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredUsers, setFilteredUsers] = useState([]);
-    const [addchat, setaddchat] = useState('');
 
     useEffect(() => {
         if (searchQuery.trim() !== '') {
@@ -43,13 +42,10 @@ const AddToChatScreen = () => {
         }
     };
     
-    const UserCard = ({ user }) => {
+    const UserCard = ({ user, onSelectUser }) => {
         return (
             <TouchableOpacity 
-            value={addchat}
-                    onChangeText={(text) => setaddchat(text)}
-                onPress={() => CreateNewChat()} 
-                
+                onPress={() => onSelectUser(user)}
                 style={{
                     width: '100%',
                     flexDirection: 'row',
@@ -83,32 +79,40 @@ const AddToChatScreen = () => {
                     }}>
                         {user.username}
                     </Text>
-                    
                 </View>
             </TouchableOpacity>
         );
     };
  
-        const CreateNewChat = async () =>{
-            let id = `${Date.now()}`;
+    const CreateNewChat = (selectedUser) => {
+        const chatsRef = collection(firestoreDB, "chats");
+        const q = query(chatsRef, where("user._id", "==", user._id), where("chatName", "==", selectedUser.username));
     
-            const _doc ={
-                _id : id,
-                user : user,
-                chatName : addchat
-            };
-            if (addchat !==""){
-                setDoc(doc(firestoreDB, "chats", id), _doc).then(() =>{
-                    setaddchat("");
-                    navigation.replace("HomeScreen");
-                }).catch((err)=>{
-                    alert("Error : ", err);
-                });
+        const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+            if (!querySnapshot.empty) {
+                // Chat exists, navigate to messages screen with existing chat ID
+                const existingChat = querySnapshot.docs[0].data();
+                unsubscribe(); // Unsubscribe from real-time updates
+                Alert.alert('Already have an existing chat with this user')
+                navigation.navigate("Messages", { chatId: existingChat._id, selectedUser });
+            } else {
+                // Chat does not exist, create new chat
+                let id = `${Date.now()}`;
+                const _doc = {
+                    _id: id,
+                    user: user,
+                    chatName: selectedUser.username
+                };
+    
+                await setDoc(doc(firestoreDB, "chats", id), _doc);
+                unsubscribe(); // Unsubscribe from real-time updates
+                navigation.navigate("Messages", { chatId: id, selectedUser });
             }
-            else{
-                console.log('I dont know why')
-            }
-        };
+        }, (error) => {
+            console.error("Error checking for existing chat: ", error);
+            alert("Error: ", error);
+        });
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -196,14 +200,13 @@ const AddToChatScreen = () => {
                 </View>
                 {filteredUsers.length > 0 ? (
                     <FlatList
-                    
                         data={filteredUsers}
-                        renderItem={({ item }) => <UserCard user={item} />}
+                        renderItem={({ item }) => <UserCard user={item} onSelectUser={CreateNewChat} />}
                         keyExtractor={(item) => item.id} // Adjust key as per your data structure
                     />
                 ) : (
                     <View style={{ alignItems: 'center', justifyContent: 'center', marginTop:12 }}>
-                        <Text style={{ fontWeight: 600, fontSize: 16}}>No users found</Text>
+                        <Text style={{ fontWeight: '600', fontSize: 16}}>No users found</Text>
                     </View>
                 )}
             </View>

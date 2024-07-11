@@ -25,17 +25,19 @@ const DashboardEvents = ({ route }) => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name='chevron-left' size={32} color={'#555'} />
+      <View style={styles.backButtonContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <MaterialIcons name='chevron-left' size={40} color={'#555'} />
         </TouchableOpacity>
-        <View style={styles.headerTitle}>
-          <Text style={styles.headerText}>PAUBOARD</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <View style={styles.profileContainer}>
-            <Ionicons name='person-outline' size={18} />
-            <Text style={styles.profileName}>{user?.username ?? 'Alo Oluwapese'}</Text>
-          </View>
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleText}>PAUBOARD</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.profileButton}>
+          <Ionicons name='person-outline' size={18} />
+          <Text style={styles.usernameText}>
+            {user?.username ?? 'Alo Oluwapese'}
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -89,34 +91,41 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    position: 'relative',
+    position: 'relative'
   },
-  headerTitle: {
+  backButtonContainer: {
+    position: 'absolute',
+    left: 0,
+    width: 50, // Adjust width as needed
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,
+  },
+  titleContainer: {
+    left: 30,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
   },
-  headerText: {
+  titleText: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#2F3B6A',
   },
-  profileContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+  profileButton: {
+   alignItems: 'center', justifyContent: 'center'
   },
-  profileName: {
+  usernameText: {
     marginTop: 4,
     fontSize: 13,
     fontWeight: 'bold',
     color: '#2F3B6A',
+    paddingHorizontal: 20,
   },
   scrollViewContent: {
     paddingHorizontal: 20,

@@ -111,6 +111,7 @@ const PostScreen = () => {
         date: dates, // dates already formatted to contain only the date part
         views: null,
         likes: null,
+        shares: null,
         department: selectedDepartment,
       });
       console.log('Post Added', docRef.id);

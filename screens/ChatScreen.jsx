@@ -18,6 +18,7 @@ const ChatScreen = ({route}) =>{
         }
     }
     const user = useSelector(state => state.user.user);
+    
 
     const sendMessage = async() => {
         const timeStamp =serverTimestamp();
@@ -146,13 +147,15 @@ const ChatScreen = ({route}) =>{
                                 <>
                                     {messages?.map((msg, i) => msg.user.providerData.email === user.providerData.email ? 
                                     (
-                                        <View style={{ margin: 4 }} key={1}>
+                                        <View style={{ margin: 4 }} key={i}>
                                         <View style={{
                                             paddingHorizontal: 16, 
                                             paddingVertical: 8,    
                                             borderRadius: 16,
                                             backgroundColor: '#007bff',
                                             position: 'relative',  
+                                            width: "auto",
+                                            alignSelf: 'flex-end'
                                         }}>
                                             <Text style={{
                                                 alignSelf: 'flex-end',
@@ -163,12 +166,51 @@ const ChatScreen = ({route}) =>{
                                                 {msg.message}
                                             </Text>
                                         </View>
+                                        <View style={{alignSelf:'flex-end'}}>
+                                            {msg?.timeStamp?.seconds &&(
+                                                <Text>{new Date(parseInt(msg?.timeStamp?.seconds)*1000).toLocaleTimeString('en-US', {
+                                                    hour:'numeric',
+                                                    minute: 'numeric',
+                                                    hour12: true,
+                                                })}</Text>
+                                            )
+                                            }
+                                        </View>
                                     </View>
                                     ) 
                                     :
                                     (
-                                    <View key={1}>
-
+                                    <View key={i} style={{ flex:1, justifyContent:'flex-start', alignItems:'center', marginRight:8}}>
+                                        <View style={{marginTop:4}}>
+                                        <View style={{
+                                            paddingHorizontal: 16, 
+                                            paddingVertical: 8,    
+                                            borderRadius: 16,
+                                            backgroundColor: '#A9A9A9',
+                                            position: 'relative',  
+                                            width: "auto",
+                                            alignSelf: 'flex-end'
+                                        }}>
+                                            <Text style={{
+                                                alignSelf: 'flex-start',
+                                                fontSize: 16,      
+                                                fontWeight: '600', 
+                                                color: '#FFFFFF',  
+                                            }}>
+                                                {msg.message}
+                                            </Text>
+                                        </View>
+                                        <View style={{alignSelf:'flex-start'}}>
+                                            {msg?.timeStamp?.seconds &&(
+                                                <Text>{new Date(parseInt(msg?.timeStamp?.seconds)*1000).toLocaleTimeString('en-US', {
+                                                    hour:'numeric',
+                                                    minute: 'numeric',
+                                                    hour12: true,
+                                                })}</Text>
+                                            )
+                                            }
+                                        </View>
+                                        </View>
                                     </View>
                                     ) )}
                                 </>)}
@@ -207,7 +249,7 @@ const ChatScreen = ({route}) =>{
                                     <Entypo name='mic' size={24} color = '#43C651'/>
                                 </TouchableOpacity>
                             </View>
-                            <TouchableOpacity style={{paddingLeft: 32}} onPress={sendMessage}> 
+                            <TouchableOpacity style={{paddingLeft: 32}} disabled={message.trim() === ''} onPress={sendMessage}> 
                             <FontAwesome name='send' size={24} color={'#777'} />    
                         </TouchableOpacity>
                         </View>

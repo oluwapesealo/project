@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView, TextInput } from 'react-native';
-import { Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Entypo, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { collection, doc, increment, onSnapshot, updateDoc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
 import { firestoreDB } from '../config/firbase.config'; // Ensure correct import path
 import { useSelector } from 'react-redux';
@@ -45,29 +45,34 @@ const HomeScreen = () => {
   }, [user]);
 
 
-  const sharing = async( title, fileType, url, description, date,) => {
+  const sharing = async( title, fileType, url, description, date, event) => {
     const shareoptions = {
       message: title + '\n'+ description + '\n' + date,
     }
+    const { id, shares } = event;
+    const eventDocRef = doc(firestoreDB, 'files', id);
+
     try {
       const shareresponse = await Share.share(shareoptions);
-
+      await updateDoc(eventDocRef, {
+        shares: shares + 1,
+      });
     }
     catch(error){
       console.log('Error: ', error)
     }
   };
-  const searchEvents = async (query) => {
+  const searchEvents = async (searchQuery) => {
     try {
-      const q = query ? query(collection(firestoreDB, 'files'), where('title', '>=', query.trim())) : collection(firestoreDB, 'files');
+      const q = searchQuery ? query(collection(firestoreDB, 'files'), where('title', '>=', searchQuery.trim())) : collection(firestoreDB, 'files');
 
       onSnapshot(q, (querySnapshot) => {
         const files = querySnapshot.docs.map(doc => ({
           ...doc.data(),
           id: doc.id,
         }));
-        const filteredEvents = query ? files.filter(file =>
-          file.title && file.title.toLowerCase().includes(query.toLowerCase())
+        const filteredEvents = searchQuery ? files.filter(file =>
+          file.title && file.title.toLowerCase().includes(searchQuery.toLowerCase())
         ) : files;
 
         setFilteredEvents(filteredEvents);
@@ -188,7 +193,7 @@ const HomeScreen = () => {
           onChangeText={(text) => setSearchQuery(text)}
         />
         <TouchableOpacity onPress={() => searchEvents(searchQuery)}>
-          <FontAwesome name='send' size={24} color={'#777'} />
+          <Feather name='filter' size={24} color={'#777'} />
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
