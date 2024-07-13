@@ -1,26 +1,88 @@
 import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, SafeAreaView, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { useSelector } from 'react-redux';
 import { BarChart } from 'react-native-chart-kit';
+import { collection, getDocs } from 'firebase/firestore';
+import { firestoreDB } from '../config/firbase.config';
 
 const screenWidth = Dimensions.get('window').width;
+
+const fetchTotalUsers = async () => {
+  const usersSnapshot = await getDocs(collection(firestoreDB, 'users'));
+  return usersSnapshot.size; // Return total number of users
+};
+const fetchEventMetrics = async () => {
+  const eventsSnapshot = await getDocs(collection(firestoreDB, 'files'));
+  let totalLikes = 0;
+  let totalShares = 0;
+  let totalViews = 0;
+
+  eventsSnapshot.forEach(doc => {
+    const event = doc.data();
+    totalLikes += event.likes || 0;
+    totalShares += event.shares || 0;
+    totalViews += event.views || 0;
+  });
+  return {
+    totalLikes,
+    totalShares,
+    totalViews,
+  };
+};
+const calculateEngagementMetrics = async () => {
+  try {
+    const totalUsers = await fetchTotalUsers();
+    const { totalLikes, totalShares, totalViews } = await fetchEventMetrics();
+
+    // Calculate metrics as percentages
+    const likesPercentage = (totalUsers > 0) ? (totalLikes / totalUsers) * 100 : 0;
+    const sharesPercentage = (totalUsers > 0) ? (totalShares / totalUsers) * 100 : 0;
+    const viewsPercentage = (totalUsers > 0) ? (totalViews / totalUsers) * 100 : 0;
+
+    return {
+      likesPercentage,
+      sharesPercentage,
+      viewsPercentage,
+    };
+  } catch (error) {
+    console.error('Error calculating engagement metrics:', error);
+  }
+};
 
 const DashboardEvents = ({ route }) => {
   const { event } = route.params;
   const user = useSelector(state => state.user.user);
   const navigation = useNavigation();
+  const [engagementMetrics, setEngagementMetrics] = useState(null);
 
   // Data for the graph
   const data = {
-    labels: ['Views', 'Likes'],
+    labels: ['Views', 'Likes', 'Shares'],
     datasets: [
       {
-        data: [event.views || 0, event.likes || 0],
+        data: [event.views || 0, event.likes || 0, event.shares || 0],
       },
     ],
   };
+  useEffect(() => {
+    const getMetrics = async () => {
+      try {
+        const totalUsers = await fetchTotalUsers();
+        const { totalLikes, totalShares, totalViews } = await fetchEventMetrics();
+
+        // Calculate metrics
+        const likesPercentage = (totalUsers > 0) ? (event.likes / totalUsers) * 100 : 0;
+    const sharesPercentage = (totalUsers > 0) ? (event.shares / totalUsers) * 100 : 0;
+    const viewsPercentage = (totalUsers > 0) ? (event.views / totalUsers) * 100 : 0;
+        setEngagementMetrics({ likesPercentage, sharesPercentage, viewsPercentage });
+      } catch (error) {
+        console.error('Error calculating engagement metrics:', error);
+      }
+    };
+    getMetrics();
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -47,6 +109,7 @@ const DashboardEvents = ({ route }) => {
             <Text style={styles.date}>Date of Event: {new Date(event.date).toLocaleDateString()}</Text>
             <Text style={styles.views}>Views: {event.views}</Text>
             <Text style={styles.likes}>Likes: {event.likes}</Text>
+            <Text style={styles.shares}>Shares: {event.shares}</Text>
             <Text style={styles.department}>Department: {event.department}</Text>
             
             <Text style={styles.description}>Description: {event.description}</Text>
@@ -72,6 +135,13 @@ const DashboardEvents = ({ route }) => {
                 borderRadius: 16,
               }}
             />
+            {engagementMetrics && (
+  <View>
+    <Text>Likes per User: {engagementMetrics.likesPercentage.toFixed(2)}%</Text>
+    <Text>Shares per User: {engagementMetrics.sharesPercentage.toFixed(2)}%</Text>
+    <Text>Views per User: {engagementMetrics.viewsPercentage.toFixed(2)}%</Text>
+  </View>
+)}
             <Image style={styles.image} source={{ uri: event.url }} />
           </View>
         </View>
@@ -145,6 +215,13 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   views: {
+    marginTop: 10,
+    fontSize: 18,
+    fontWeight: 'normal',
+    fontFamily: 'Nunito',
+    marginBottom: 5,
+  },
+  shares: {
     marginTop: 10,
     fontSize: 18,
     fontWeight: 'normal',

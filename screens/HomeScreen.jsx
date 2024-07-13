@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView, TextInput } from 'react-native';
-import { Entypo, Feather, FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView, TextInput, Share } from 'react-native';
+import { Entypo, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { collection, doc, increment, onSnapshot, updateDoc, setDoc, deleteDoc, query, where } from 'firebase/firestore';
-import { firestoreDB } from '../config/firbase.config'; // Ensure correct import path
+import { firestoreDB } from '../config/firbase.config';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { setLikedPosts } from './FavouritesScreen';
-import { Share } from 'react-native';
+import ShareModal from '../components/ShareModal';
+import { Menu, MenuOption, MenuOptions, MenuTrigger } from 'react-native-popup-menu';
 
 const HomeScreen = () => {
   const user = useSelector(state => state.user.user);
@@ -14,8 +14,12 @@ const HomeScreen = () => {
   const [events, setEvents] = useState([]);
   const [likedEvents, setLikedEvents] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
-  const [FilteredEvents, setFilteredEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
+  const [isShareModalVisible, setShareModalVisible] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(firestoreDB, 'files'), (snapshot) => {
@@ -44,24 +48,70 @@ const HomeScreen = () => {
     }
   }, [user]);
 
-
-  const sharing = async( title, fileType, url, description, date, event) => {
-    const shareoptions = {
-      message: title + '\n'+ description + '\n' + date,
-    }
-    const { id, shares } = event;
-    const eventDocRef = doc(firestoreDB, 'files', id);
-
+  const sharing = async (title, description, date,url, event) => {
+    const shareOptions = {
+      message: `${title}\n${description}\n${date}\n${url}`, // Use template literals for readability
+    };
+  
+    const { id } = event; // Destructure id from event
+    const eventDocRef = doc(firestoreDB, 'files', id); // Verify firestoreDB and doc function
+  
     try {
-      const shareresponse = await Share.share(shareoptions);
+      await Share.share(shareOptions); // Ensure Share.share is correctly imported and used
       await updateDoc(eventDocRef, {
-        shares: shares + 1,
+        shares: increment(1),
       });
-    }
-    catch(error){
-      console.log('Error: ', error)
+      console.log('Event shared successfully and share count updated.');
+    } catch (error) {
+      console.error('Error sharing event:', error); // Improve error handling
     }
   };
+
+  // const handleShare = async (item, selectedEvent) => {
+  //   if (selectedEvent && selectedUser) {
+  //     setSelectedUser(item)
+  //     sendEventToUser(selectedUser, selectedEvent);
+  //   }
+  //   setShareModalVisible(false);
+  // };
+  // const sharing = async (event) => {
+  //   try {
+  //     if (!event || !event.roomId) {
+  //       console.error('Event or roomId is undefined or null:', event);
+  //       return;
+  //     }
+  
+  //     const selectedRoom = { _id: event.roomId, chatName: '' };
+  //     setSelectedRoom(selectedRoom);
+  //     setSelectedEvent(event);
+  //     setShareModalVisible(true);
+  //   } catch (error) {
+  //     console.error('Error in sharing function:', error);
+  //   }
+  // };
+  
+  // const sendEventToUser = async (recipient, event) => {
+  //   try {
+  //     if (!event || !event.roomId) {
+  //       console.error('Event or roomId is undefined or null:', event);
+  //       return;
+  //     }
+  
+  //     const messageDocRef = doc(collection(firestoreDB, 'messages'));
+  //     await setDoc(messageDocRef, {
+  //       sender: user._id,
+  //       recipient: selectedUser.id,
+  //       event,
+  //       timestamp: new Date(),
+  //     });
+  //     console.log('Event shared successfully');
+  //     navigation.navigate("ChatScreen", { room: selectedUser, event: selectedEvent });
+  //   } catch (error) {
+  //     console.error('Error sharing event:', error);
+  //   }
+  // };
+  
+
   const searchEvents = async (searchQuery) => {
     try {
       const q = searchQuery ? query(collection(firestoreDB, 'files'), where('title', '>=', searchQuery.trim())) : collection(firestoreDB, 'files');
@@ -88,7 +138,7 @@ const HomeScreen = () => {
       const snapshot = await onSnapshot(likedPostsQuery, (querySnapshot) => {
         const likedPostsData = {};
         querySnapshot.forEach((doc) => {
-          likedPostsData[doc.id] = true; // Store liked event IDs in an object for quick lookup
+          likedPostsData[doc.id] = true;
         });
         setLikedEvents(likedPostsData);
       });
@@ -102,20 +152,17 @@ const HomeScreen = () => {
     const favoriteDocRef = doc(firestoreDB, 'favorites', eventId);
     const isLiked = likedEvents[eventId];
 
-    // Toggle local liked status
     setLikedEvents((prevLikedEvents) => ({
       ...prevLikedEvents,
       [eventId]: !isLiked,
     }));
 
     try {
-      // Update likes count in Firestore
       await updateDoc(eventDocRef, {
         likes: increment(isLiked ? -1 : 1),
       });
 
       if (!isLiked) {
-        // Add event to favorites collection
         await setDoc(favoriteDocRef, {
           title,
           fileType,
@@ -128,7 +175,6 @@ const HomeScreen = () => {
           likedBy: userId,
         });
       } else {
-        // Remove event from favorites collection
         await deleteDoc(favoriteDocRef);
       }
     } catch (error) {
@@ -141,7 +187,6 @@ const HomeScreen = () => {
     const eventDocRef = doc(firestoreDB, 'files', id);
 
     try {
-      // Update views count in Firestore
       await updateDoc(eventDocRef, {
         views: views + 1,
       });
@@ -159,24 +204,47 @@ const HomeScreen = () => {
       console.warn('Navigation object or openDrawer function is not available.');
     }
   };
+  const handledashboard =() =>{
+    navigation.navigate("Dashboard")
+  }
+  const handlePost =() =>{
+    navigation.navigate("Post")
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleMenuPress}>
-          <Entypo name='menu' size={28} resizeMode="contain" />
-        </TouchableOpacity>
-        <View style={styles.headerTitle}>
-          <Text style={styles.headerText}>PAUBOARD</Text>
+
+<View style={styles.header}>
+      <View style={styles.menucontainer}>
+      {user?.admin && ( // Check if user is admin
+            <Menu>
+              <MenuTrigger>
+                <Entypo name='menu' size={32} resizeMode="contain" />
+              </MenuTrigger>
+              <MenuOptions>
+                <MenuOption onSelect={handlePost}>
+                  <Text style={{ padding: 15 }}>Post</Text>
+                </MenuOption>
+                <MenuOption onSelect={handledashboard}>
+                  <Text style={{ padding: 15 }}>Dashboard</Text>
+                </MenuOption>
+              </MenuOptions>
+            </Menu>
+          )}
         </View>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <View style={styles.profileContainer}>
-            <Ionicons name='person-outline' size={18} />
-            <Text style={styles.profileName}>
-              {user?.username ?? 'Alo Oluwapese'}
-            </Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleText}>PAUBOARD</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={styles.profileButton}>
+  <Ionicons name='person-outline' size={18} />
+  <Text 
+    style={styles.usernameText}
+    numberOfLines={1}
+    ellipsizeMode="tail"
+  >
+    {user?.username ?? 'Alo Oluwapese'}
+  </Text>
+</TouchableOpacity>
       </View>
       <View style={styles.searchBarContainer}>
         <Ionicons name='chatbubbles' size={24} color={'#777'} />
@@ -192,12 +260,12 @@ const HomeScreen = () => {
           }}
           onChangeText={(text) => setSearchQuery(text)}
         />
-        <TouchableOpacity onPress={() => searchEvents(searchQuery)}>
+        {/* <TouchableOpacity onPress={() => searchEvents(searchQuery)}>
           <Feather name='filter' size={24} color={'#777'} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        {(searchQuery.trim() === '' ? events : FilteredEvents).map((event, index) => (
+        {(searchQuery.trim() === '' ? events : filteredEvents).map((event, index) => (
           <TouchableOpacity key={index} style={styles.container} onPress={() => handleEventPress(event)}>
             <View style={styles.card}>
               <Text style={styles.title}>{event.title}</Text>
@@ -229,13 +297,7 @@ const HomeScreen = () => {
                     {likedEvents[event.id] ? 'Liked' : 'Like'} ({event.likes || 0})
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.interactionsBox} onPress={() => sharing(
-                    event.title,
-                    event.fileType,
-                    event.url,
-                    event.description,
-                    event.date
-                  )}>
+                <TouchableOpacity style={styles.interactionsBox} onPress={() => sharing(event.title, event.description, event.date, event.url, event)}>
                   <MaterialCommunityIcons name='share-outline' size={28} />
                   <Text style={styles.interactionText}>Share</Text>
                 </TouchableOpacity>
@@ -244,50 +306,62 @@ const HomeScreen = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      {/* <ShareModal
+        visible={isShareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        onShare={handleShare}
+      /> */}
     </SafeAreaView>
   );
 };
 
 export default HomeScreen;
 
-
 const styles = StyleSheet.create({
   header: {
     width: '100%',
-    height: 50,
+    height: 50, // Adjust height as needed
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    position: 'relative',
+    position: 'relative'
   },
-  headerTitle: {
+  menucontainer: {
+    position: 'absolute',
+    left: 20,
+    width: 50, // Adjust width as needed
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,
+  },
+  titleContainer: {
+    left: 50,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
   },
-  headerText: {
+  titleText: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#2F3B6A',
   },
-  profileContainer: {
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+  profileButton: {
+   alignItems: 'center', justifyContent: 'center', left: 20
   },
-  profileName: {
+  usernameText: {
     marginTop: 4,
     fontSize: 13,
     fontWeight: 'bold',
     color: '#2F3B6A',
+    paddingHorizontal: 20,
+    width: 125, // Adjust width as needed
   },
   searchBarContainer: {
     width: '90%',

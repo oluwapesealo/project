@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, TextInput, ScrollView, Alert } from 'react-native';
-import { Entypo, Ionicons } from '@expo/vector-icons';
+import { Entypo, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { addDoc, collection, onSnapshot } from 'firebase/firestore';
@@ -145,39 +145,56 @@ const PostScreen = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{
-        width: '100%',
-        height: 50, // Adjust height as needed
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        position: 'relative'
-      }}>
-        <TouchableOpacity>
-          <Entypo name='menu' size={28} resizeMode="contain" />
+    width: '100%',
+    height: 50, // Adjust height as needed
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: 'relative'
+  }}>
+      <View style={{
+    position: 'absolute',
+    left: 0,
+    width: 50, // Adjust width as needed
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{
+    position: 'absolute',
+    left: 16,
+  }}>
+          <MaterialIcons name='chevron-left' size={40} color={'#555'} />
         </TouchableOpacity>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-          <Text style={{
-            fontSize: 24,
-            fontWeight: 'bold',
-            textAlign: 'center',
-            color: '#2F3B6A',
-          }}>PAUBOARD</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name='person-outline' size={18} />
-            <Text style={{
-              marginTop: 4,
-              fontSize: 13,
-              fontWeight: 'bold',
-              color: '#2F3B6A',
-              paddingHorizontal: 20,
-            }}>
-              {user?.username ?? 'Alo Oluwapese'}
-            </Text>
-          </View>
+        <View style={{
+    left: 30,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}>
+          <Text style={{
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#2F3B6A',
+  }}>PAUBOARD</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{
+   alignItems: 'center', justifyContent: 'center'
+  }}>
+          <Ionicons name='person-outline' size={18} />
+          <Text style={{
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2F3B6A',
+    paddingHorizontal: 20,
+  }}>
+            {user?.username ?? 'Alo Oluwapese'}
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView>
@@ -320,6 +337,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   departmentPickerLabel: {
+    
     fontSize: 16,
     fontWeight: '500',
   },

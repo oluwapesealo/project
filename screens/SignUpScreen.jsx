@@ -1,4 +1,4 @@
-import { Text, View, Image, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { Text, View, Image, Dimensions, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState } from 'react';
 import { Logo, Leave } from '../assets'; // Adjust this according to your asset structure
 import { UserTextInput } from '../components';
@@ -27,6 +27,7 @@ const SignUpScreen = () => {
               _id: userCred?.user.uid,
               username: username,
               providerData: userCred.user.providerData[0],
+              admin: null
             };
             setDoc(doc(firestoreDB, "users", userCred?.user.uid), data)
               .then(() => {
@@ -48,6 +49,10 @@ const SignUpScreen = () => {
   };
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
     <ScrollView>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
         <Image
@@ -143,6 +148,7 @@ const SignUpScreen = () => {
         </View>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

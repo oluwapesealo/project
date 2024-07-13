@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
-import { Entypo, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Entypo, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { collection, doc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { firestoreDB } from '../config/firbase.config'; // Adjusted import path for Firebase config
 import { useSelector } from 'react-redux';
@@ -57,20 +57,57 @@ const DashboardScreen = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <Entypo name='menu' size={28} resizeMode="contain" />
+      <View style={{
+    width: '100%',
+    height: 50, // Adjust height as needed
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    position: 'relative'
+  }}>
+      <View style={{
+    position: 'absolute',
+    left: 0,
+    width: 50, // Adjust width as needed
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={{
+    position: 'absolute',
+    left: 16,
+  }}>
+          <MaterialIcons name='chevron-left' size={40} color={'#555'} />
         </TouchableOpacity>
-        <View style={styles.headerTitle}>
-          <Text style={styles.headerText}>PAUBOARD</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate("Profile")}>
-          <View style={styles.profileContainer}>
-            <Ionicons name='person-outline' size={18} />
-            <Text style={styles.profileName}>
-              {user?.username ?? 'Alo Oluwapese'}
-            </Text>
-          </View>
+        <View style={{
+    left: 30,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  }}>
+          <Text style={{
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#2F3B6A',
+  }}>PAUBOARD</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Profile")} style={{
+   alignItems: 'center', justifyContent: 'center'
+  }}>
+          <Ionicons name='person-outline' size={18} />
+          <Text style={{
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2F3B6A',
+    paddingHorizontal: 20,
+  }}>
+            {user?.username ?? 'Alo Oluwapese'}
+          </Text>
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>

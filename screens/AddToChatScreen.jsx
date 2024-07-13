@@ -87,7 +87,11 @@ const AddToChatScreen = () => {
     const CreateNewChat = (selectedUser) => {
         const chatsRef = collection(firestoreDB, "chats");
         const q = query(chatsRef, where("user._id", "==", user._id), where("chatName", "==", selectedUser.username));
-    
+
+        const userId = user._id;
+        const userId2 = selectedUser._id;
+        const username = user.username;
+        const username2 = selectedUser.username;
         const unsubscribe = onSnapshot(q, async (querySnapshot) => {
             if (!querySnapshot.empty) {
                 // Chat exists, navigate to messages screen with existing chat ID
@@ -100,10 +104,13 @@ const AddToChatScreen = () => {
                 let id = `${Date.now()}`;
                 const _doc = {
                     _id: id,
-                    user: user,
-                    chatName: selectedUser.username
+                    participants: [userId, userId2 ],
+                    participantsusername:[ username, username2 ]              ,                    
+                    chatName: selectedUser.username,
+                    otherChatName: user.username
                 };
-    
+
+                console.log(id, _doc)
                 await setDoc(doc(firestoreDB, "chats", id), _doc);
                 unsubscribe(); // Unsubscribe from real-time updates
                 navigation.navigate("Messages", { chatId: id, selectedUser });

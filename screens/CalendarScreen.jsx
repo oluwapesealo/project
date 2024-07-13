@@ -25,7 +25,7 @@ const CalendarScreen = () => {
           position: 'relative'
         }}>
           <TouchableOpacity>
-            <Entypo name='menu' size={28} resizeMode="contain" />
+            <Entypo name='menu' size={28} resizeMode="contain" color={'#f0f0f0'} />
           </TouchableOpacity>
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
             <Text style={{

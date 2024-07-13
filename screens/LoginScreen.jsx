@@ -20,9 +20,10 @@ const LoginScreen = () => {
   const [alert, setalert] = useState(false);
   const [alertmessage, setalertmessage] = useState("");
   const dispatch = useDispatch();
-
+  
   const login = async() =>{
     if(emailvalid && email !==""){
+      console.log(email, password)
       await signInWithEmailAndPassword(firebaseAuth, email, password).then(
         userCred => {
         if(userCred){
@@ -31,7 +32,10 @@ const LoginScreen = () => {
             if(docSnap.exists()){
               console.log("User Data :", docSnap.data());
               dispatch(SET_USER(docSnap.data()))
-              navigation.navigate("MainTabs");
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MainTabs" }],
+              });
             }
             // else{
             //   setalert(true);
