@@ -13,7 +13,7 @@ const UserTextInput = ({ placeholder, isPass, setStateValue, setemailvalid }) =>
     setStateValue(text);
 
     if (placeholder === "Email") {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[a-zA-Z]+@pau\.edu\.ng$/;
       const status = emailRegex.test(text);
       setisemailvalid(status);
       setemailvalid(status);

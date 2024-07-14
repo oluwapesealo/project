@@ -50,9 +50,9 @@ console.log("Chat Rooms:", chats);
         </View>
         <View style={styles.messageDetails}>
           <Text style={styles.chatName}>{displayName}</Text>
-          <Text style={styles.lastMessage}>This is the message that appears from other people</Text>
+          <Text style={styles.lastMessage}>You have a conversation</Text>
         </View>
-        <Text style={styles.timestamp}>20 min</Text>
+        <Text style={styles.timestamp}>.</Text>
       </TouchableOpacity>
     );}
     else{
@@ -66,9 +66,9 @@ console.log("Chat Rooms:", chats);
           </View>
           <View style={styles.messageDetails}>
             <Text style={styles.chatName}>{room.chatName}</Text>
-            <Text style={styles.lastMessage}>This is the message that appears from other people</Text>
+            <Text style={styles.lastMessage}>You have a conversation</Text>
           </View>
-          <Text style={styles.timestamp}>20 min</Text>
+          <Text style={styles.timestamp}>.</Text>
         </TouchableOpacity>
       );}
     };
